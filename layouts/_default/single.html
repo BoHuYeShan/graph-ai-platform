@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="index, follow">
+  <title>{{ title }} — B.A.I.T. Community Manuscript</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="manuscript-page">
+
+  <!-- 截图水印层 (CSS fixed, low opacity) -->
+  <div class="screenshot-watermark" aria-hidden="true">社区虚构文稿 / Community Fictional Manuscript</div>
+  <div class="screenshot-corner-mark" aria-hidden="true">Fictional · Not Journal Publication</div>
+
+  <!-- 顶部细横幅 -->
+  <div class="disclosure-banner">
+    社区虚构文稿工坊 / Fictional Academic Workshop · 
+    <a href="/about/">关于本平台</a>
+  </div>
+
+  <!-- 导航 -->
+  <nav class="site-nav">
+    <a href="/" class="site-title">B.A.I.T.</a>
+    <div class="nav-links">
+      <a href="/manuscripts/">Manuscripts</a>
+      <a href="/workshop/">Workshop</a>
+      <a href="/about/">About</a>
+    </div>
+  </nav>
+
+  <!-- 主体内容 -->
+  <main class="manuscript-content">
+    {{ content }}
+  </main>
+
+  <!-- 页脚完整披露 -->
+  <footer class="site-footer">
+    <div class="full-disclosure">
+      <p><strong>B.A.I.T. 是社区虚构文稿工坊与推想型学术档案项目，不是真实学术期刊、预印本服务器、收录机构或认证机构。</strong></p>
+      <p>B.A.I.T. is a fictional community manuscript workshop and speculative archive. It is not a real academic journal, preprint server, indexing service, certification body, or institutional publisher.</p>
+    </div>
+    <div class="footer-links">
+      <a href="/policies/DISCLAIMER.md">免责声明</a>
+      <a href="/policies/CODE_OF_CONDUCT.md">社区公约</a>
+      <a href="/policies/TAKEDOWN.md">投诉与下架</a>
+      <a href="https://github.com/bait-platform/bait-core">GitHub</a>
+    </div>
+  </footer>
+
+</body>
+</html>

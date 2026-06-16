@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B.A.I.T. Dev Navigator</title>
+<style>
+  :root { font-family: system-ui, sans-serif; background: #1a1a2e; color: #e0e0e0; }
+  body { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+  h1 { color: #88ccff; border-bottom: 2px solid #333; padding-bottom: 8px; }
+  h2 { color: #ccaaff; margin-top: 32px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+  .card { display: block; padding: 14px 16px; border-radius: 6px; text-decoration: none; transition: 0.15s; }
+  .card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+  .academic { background: #1a2740; border: 1px solid #2a4a6a; color: #aaccff; }
+  .archive  { background: #2a1a10; border: 1px solid #5a3a20; color: #ffcc88; }
+  .terminal { background: #0a1a0a; border: 1px solid #1a3a1a; color: #88cc88; }
+  .policy   { background: #1a1a2e; border: 1px solid #333; color: #aaAACC; }
+  .card .title { font-size: 1.05em; font-weight: bold; }
+  .card .desc  { font-size: 0.78em; opacity: 0.7; margin-top: 4px; }
+  .tag { display: inline-block; font-size: 0.7em; padding: 2px 6px; border-radius: 3px; margin-left: 6px; }
+  .tag-prod { background: #ff444422; color: #ff6666; }
+  .tag-dev  { background: #44ff4422; color: #66ff66; }
+  .tag-wip  { background: #ffaa4422; color: #ffaa66; }
+</style>
+</head>
+<body>
+
+<h1>🧭 B.A.I.T. Dev Navigator</h1>
+<p style="opacity:0.6">本地开发快速跳转 · localhost:8080</p>
+
+<h2>🌐 学术门户 Academic Portal <span class="tag tag-prod">面向民科</span></h2>
+<div class="grid">
+  <a class="card academic" href="/">
+    <div class="title">📰 首页 · Home</div>
+    <div class="desc">期刊首页，最新文稿列表</div>
+  </a>
+  <a class="card academic" href="/2025/0001/">
+    <div class="title">📄 样本论文 #0001</div>
+    <div class="desc">修昔底德陷阱·星系文明 (MathJax)</div>
+  </a>
+  <a class="card academic" href="/workshop/">
+    <div class="title">✍️ 写作工坊</div>
+    <div class="desc">投稿流程、审核说明</div>
+  </a>
+  <a class="card academic" href="/about/">
+    <div class="title">ℹ️ 关于平台</div>
+    <div class="desc">我们是什么、不是什么</div>
+  </a>
+  <a class="card academic" href="/submit/">
+    <div class="title">📬 投稿 <span class="tag tag-wip">WIP</span></div>
+    <div class="desc">将来：表单/GitHub Issue</div>
+  </a>
+</div>
+
+<h2>🗄️ 档案库 Archive <span class="tag tag-prod">面向解谜者</span></h2>
+<div class="grid">
+  <a class="card archive" href="/archive/">
+    <div class="title">🏛️ 档案库首页</div>
+    <div class="desc">R.E.E.F. 主站，宇宙索引</div>
+  </a>
+  <a class="card archive" href="/archive/cosmos/">
+    <div class="title">🌌 宇宙列表 <span class="tag tag-wip">WIP</span></div>
+    <div class="desc">COSMOS 编号索引</div>
+  </a>
+  <a class="card archive" href="/archive/records/">
+    <div class="title">📋 异常记录 <span class="tag tag-wip">WIP</span></div>
+    <div class="desc">R 级异常报告</div>
+  </a>
+  <a class="card archive" href="/archive/wiki/">
+    <div class="title">📚 Wiki <span class="tag tag-wip">WIP</span></div>
+    <div class="desc">K.E.L.P. 术语词典</div>
+  </a>
+</div>
+
+<h2>🖥️ 终端与深渊</h2>
+<div class="grid">
+  <a class="card terminal" href="/terminal/">
+    <div class="title">>_ 档案终端</div>
+    <div class="desc">伪终端模拟 · ls/cat/decrypt…</div>
+  </a>
+  <a class="card terminal" href="/terminal/?session=quarantine">
+    <div class="title">🔒 隔离区终端 <span class="tag tag-dev">DEV</span></div>
+    <div class="desc">quarantine 权限测试</div>
+  </a>
+</div>
+
+<h2>📜 政策与文档</h2>
+
+<p style="margin-top:40px; opacity:0.4; font-size:0.8em;">
+  B.A.I.T. Dev Navigator · 仅供本地开发使用
+</p>
+
+</body>
+</html>
