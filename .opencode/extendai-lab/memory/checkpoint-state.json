@@ -1,0 +1,47 @@
+{
+  "sessions": [
+    {
+      "sessionID": "plugin-root",
+      "conversationID": "workspace:D:\\-Users-\\Documents\\GitHub\\PJG1",
+      "workspaceRoot": "D:\\-Users-\\Documents\\GitHub\\PJG1",
+      "repositoryId": "D:\\-Users-\\Documents\\GitHub\\PJG1",
+      "checkpoints": [],
+      "metadata": {},
+      "createdAt": 1781602941848,
+      "lastActivity": 1781602941848
+    },
+    {
+      "sessionID": "ses_1303ba467ffewO4J36tMnoBsfw",
+      "workspaceRoot": "D:\\-Users-\\Documents\\GitHub\\PJG1",
+      "checkpoints": [],
+      "metadata": {},
+      "createdAt": 1781602212769,
+      "lastActivity": 1781602212769
+    }
+  ],
+  "workspaces": [
+    {
+      "workspaceRoot": "D:\\-Users-\\Documents\\GitHub\\PJG1",
+      "repositoryId": "D:\\-Users-\\Documents\\GitHub\\PJG1",
+      "sessionIDs": [
+        "plugin-root",
+        "ses_1303ba467ffewO4J36tMnoBsfw"
+      ],
+      "globalContext": {},
+      "preferences": [],
+      "lastActivity": 1781602941848
+    }
+  ],
+  "repositories": [
+    {
+      "repositoryId": "D:\\-Users-\\Documents\\GitHub\\PJG1",
+      "workspaceRoots": [
+        "D:\\-Users-\\Documents\\GitHub\\PJG1"
+      ],
+      "globalKnowledge": [],
+      "patterns": [],
+      "preferences": [],
+      "lastActivity": 1781602941848
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "maintainer": "extendai-lab",
+  "version": 1,
+  "savedAt": "2026-06-16T11:00:56.905Z",
+  "enabledBySession": [
+    [
+      "ses_1303ba467ffewO4J36tMnoBsfw",
+      false
+    ]
+  ],
+  "consecutiveContinuationsBySession": [
+    [
+      "ses_1303ba467ffewO4J36tMnoBsfw",
+      0
+    ]
+  ],
+  "suppressUntil": 0,
+  "reviewVerdictBySession": [],
+  "reviewInjectedBySession": [],
+  "autoEnableSuppressedSessionIds": [
+    "ses_1303ba467ffewO4J36tMnoBsfw"
+  ],
+  "autoEnableSuppressedGlobally": false,
+  "lastPressureCheckpointKeyBySession": []
+}
