@@ -1,13 +1,18 @@
-# CLI runtime state
-.codegraph/*.db
-.codegraph/*.db-wal
-.codegraph/*.db-shm
-.codegraph/daemon.pid
-.codegraph/daemon.log
+# CLI runtime — local only, never commit
+.codegraph/
+.opencode/
+.reasonix/
+reasonix.toml
 
-# Hugo build output
+# Design docs — local only, never push to public repo
+BAIT_Platform_Design_Doc_v5.1.md
+BAIT_Platform_Design_Doc_v6_supplement.md
+BAIT_V6_Worldview_Discussion.md
+BAIT_User_Messages_Summary.md
+BAIT_v5_Discussion_Points.md
+
+# Build output
 /public/
-.hugo_build.lock
 
 # OS
 .DS_Store
