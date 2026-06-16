@@ -240,6 +240,56 @@ body.academic {
   padding: 3px 8px; border-radius: 3px;
 }
 
+/* ── Callout box ── */
+.ac-callout {
+  margin: var(--s-4) 0; padding: var(--s-3) var(--s-4);
+  border-left: 3px solid var(--ac-navy);
+  background: var(--ac-surface);
+}
+.ac-callout .ac-callout-title {
+  font-family: var(--font-sans); font-size: 0.78em; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--ac-navy); margin-bottom: var(--s-2);
+}
+.ac-callout p { color: var(--ac-ink-light); font-style: italic; margin: 0.3em 0; }
+
+/* ── Fissure note ── */
+.ac-fissure-note {
+  margin: var(--s-3) 0 var(--s-5); padding: var(--s-2) var(--s-4);
+  background: #faf7f0; border: 1px solid #e0d8c0; border-radius: 4px;
+  font-family: var(--font-sans); font-size: 0.82em; color: #8a7a4a;
+  line-height: 1.5;
+}
+
+/* ── Meta table ── */
+.ac-meta-table { margin: var(--s-3) 0 var(--s-4); }
+.ac-meta-table table { width: 100%; border-collapse: collapse; }
+.ac-meta-table .meta-key {
+  font-family: var(--font-sans); font-size: 0.78em; font-weight: 600;
+  color: var(--ac-ink-muted); padding: var(--s-1) var(--s-3) var(--s-1) 0;
+  white-space: nowrap; vertical-align: top; width: 130px;
+}
+.ac-meta-table .meta-val {
+  font-size: 0.9em; padding: var(--s-1) 0; vertical-align: top;
+}
+
+/* ── Day/Night toggle ── */
+body.academic.dark {
+  --ac-paper: #1a1a22;
+  --ac-surface: #22222c;
+  --ac-ink: #d0d0d8;
+  --ac-ink-light: #9999a8;
+  --ac-ink-muted: #666;
+  --ac-border: #333;
+  --ac-navy: #88aacc;
+  --ac-badge-bg: #2a2a3a;
+  --ac-badge-text: #8899bb;
+}
+body.academic.dark .ac-fissure-note { background: #1a1a10; border-color: #3a3010; color: #aa9944; }
+body.academic.dark .ac-callout { background: #22222c; }
+body.academic.dark .ac-masthead { border-bottom-color: #333; }
+body.academic.dark .ac-footer-watermark { color: #444; }
+
 /* ── Home list ── */
 .ac-list { list-style: none; }
 .ac-list li {
