@@ -14,9 +14,9 @@ bi_score: 68.5
 date: 2025-06-16
 review_status: RELEASE
 lang: zh
-review_note: "Community Editorial Screening — Style & Safety Review passed. Ready for Archive."
+review_note: "Community Editorial Screening — Style & Safety Review passed. Ready for Archive. R.E.E.F. 裂隙观测报告 F-2：在 COSMOS-MIX-001 裂隙中接收到与基准现实公开材料呈现结构相似性的信息。已整理为标准观测格式。"
 canon_level: Semi-Canon
-keywords: ["Thucydides trap", "galactic civilization", "contact scenarios", "speculative analysis"]
+keywords: ["Thucydides trap", "galactic civilization", "contact scenarios", "ontological fissure", "speculative analysis"]
 real_references_count: 4
 abstract: |
   本文以一个虚构的推想框架，将国际关系中的「修昔底德陷阱」概念延展至
@@ -28,6 +28,18 @@ fictional_disclosure: true
 ---
 
 # 关于修昔底德陷阱在星系文明接触情境中的非对称适用性：一个推想型分析
+
+<div class="article-meta-bar">
+  <span class="dio">DIO:B.A.I.T.2025.0001</span>
+  <span class="article-badge">F-2 · STABLE FISSURE · 裂隙观测报告</span>
+  <span>FDI: 3/5</span>
+</div>
+
+> **R.E.E.F. 裂隙观测报告**
+> 本报告基于 COSMOS-MIX-001 裂隙中接收到的信息。该裂隙信号与基准现实中
+> 关于「修昔底德陷阱」的公开学术讨论呈现出意外的结构相似性——但裂隙版本
+> 将该概念扩展至 Kardashev 等级的星系文明接触场景。
+> 此为社区虚构文稿。裂隙本身是虚构设定。本报告不构成现实学术发表。
 
 ## 元数据
 

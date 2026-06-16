@@ -115,10 +115,10 @@ body {
   font-weight: 700;
   letter-spacing: 0.06em;
 }
-.class-delta-0 { background: #1a3a2a; color: var(--safe); border: 1px solid var(--safe); }
-.class-delta-1 { background: #1a2a3a; color: var(--accent2); border: 1px solid var(--accent2); }
-.class-delta-2 { background: #2a2010; color: var(--warn); border: 1px solid var(--warn); }
-.class-delta-3 { background: #2a1010; color: var(--danger); border: 1px solid var(--danger); }
+.class-fissure-0 { background: #1a3a2a; color: var(--safe); border: 1px solid var(--safe); }
+.class-fissure-1 { background: #1a2a3a; color: var(--accent2); border: 1px solid var(--accent2); }
+.class-fissure-2 { background: #2a2010; color: var(--warn); border: 1px solid var(--warn); }
+.class-fissure-3 { background: #2a1010; color: var(--danger); border: 1px solid var(--danger); }
 .class-delta-4 { background: #1a0a0a; color: #ff2222; border: 1px solid #ff2222; }
 .class-sigma   { background: #1a1a2a; color: #8888aa; border: 1px solid #555588; }
 

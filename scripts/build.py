@@ -172,25 +172,25 @@ def classification_banner(fm, lang="en"):
     ddi = fm.get("ddi", "0")
     dio = fm.get("dio", "—")
     grade_map = {
-        "FG-0": ("Δ-0", "BASELINE ANOMALY", "delta-0"),
-        "FG-1": ("Δ-1", "MINOR DEVIATION", "delta-1"),
-        "FG-2": ("Δ-2", "SIGNIFICANT DEVIATION", "delta-2"),
-        "FG-3": ("Δ-3", "CRITICAL DEVIATION", "delta-3"),
+        "FG-0": ("F-0", "SURFACE RIPPLE", "fissure-0"),
+        "FG-1": ("F-1", "MINOR FISSURE", "fissure-1"),
+        "FG-2": ("F-2", "STABLE FISSURE", "fissure-2"),
+        "FG-3": ("F-3", "DEEP RIFT", "fissure-3"),
         "TG-1": ("Σ", "STANDARD", "sigma"), "TG-2": ("Σ", "STANDARD", "sigma"), "TG-3": ("Σ", "STANDARD", "sigma"),
     }
-    label, desc, css_cls = grade_map.get(grade, ("Δ-0", "UNCLASSIFIED", "delta-0"))
+    label, desc, css_cls = grade_map.get(grade, ("F-0", "UNCLASSIFIED", "fissure-0"))
     ddi_colors = {"0":"#888","1":"#4a88aa","2":"#cc9944","3":"#cc6644","4":"#cc2222","5":"#000"}
     color = ddi_colors.get(str(ddi), "#888")
     return f"""
 <div class="classification-banner">
 <div class="classification-card">
-  <div class="class-header">{t(lang,'classification_label')} · OBJECT: MANUSCRIPT LOGIC & FICTIONAL-WORLD DEVIATION</div>
+  <div class="class-header">{t(lang,'classification_label')} · OBJECT: ONTOLOGICAL FISSURE SIGNAL</div>
   <div class="class-body">
     <div class="class-level class-{css_cls}">{label} — {desc}</div>
     <div class="class-props" style="margin-top:10px">
-      <span class="prop-label">DIO:</span><span class="prop-value">{dio}</span>
-      <span class="prop-label">DDI:</span><span class="prop-value" style="color:{color}">{ddi} / 5</span>
-      <span class="prop-label">STATUS:</span><span class="prop-value">ARCHIVED</span>
+      <span class="prop-label">DIO:</span><span class="prop-value">{dio} (internal fictional archive identifier)</span>
+      <span class="prop-label">FDI:</span><span class="prop-value" style="color:{color}">{ddi} / 5 — FISSURE DEVIATION INDEX</span>
+      <span class="prop-label">STATUS:</span><span class="prop-value">ARCHIVED · COMMUNITY SCREENING PASSED</span>
     </div>
     <p style="margin-top:8px;font-size:0.78em;color:#888;">{t(lang,'classification_note')}</p>
   </div>
@@ -243,17 +243,18 @@ def build():
         dest.mkdir(parents=True, exist_ok=True)
         (dest / "index.html").write_text(academic_page, encoding="utf-8")
 
-        # Archive page
+        # Archive page — always at /<lang>/archive/papers/...
         banner = classification_banner(fm, fm_lang)
         archive_page = archive_shell(fm_lang, title, body_html, banner)
-        dest2 = PUBLIC / "archive" / "papers" / url_prefix
+        arch_prefix = ("" if fm_lang == "zh" else fm_lang + "/") 
+        dest2 = PUBLIC / arch_prefix / "archive" / "papers" / url_parts[0] / url_parts[1]
         dest2.mkdir(parents=True, exist_ok=True)
         (dest2 / "index.html").write_text(archive_page, encoding="utf-8")
 
         manuscripts_index.append({
             "title": title, "dio": fm.get("dio",""), "lang": fm_lang,
             "academic_url": "/" + url_prefix + "/",
-            "archive_url": "/archive/papers/" + url_prefix + "/",
+            "archive_url": "/" + arch_prefix + "archive/papers/" + "/".join(url_parts) + "/",
             "date": fm.get("date",""), "grade": fm.get("grade","FG-2"),
         })
 
@@ -307,7 +308,7 @@ B.A.I.T. is a **community fictional academic manuscript workshop**.
         # Archive home
         items = ""
         for ms in reversed(manuscripts_index):
-            items += f'- [{ms["dio"]} — {ms["title"]}](/{ms["archive_url"]}) `Δ-2 SIGNIFICANT DEVIATION` [{ms["lang"]}]\n'
+            items += f'- [{ms["dio"]} — {ms["title"]}](/{ms["archive_url"]}) `F-2 STABLE FISSURE` [{ms["lang"]}]\n'
         arch_body = md2html(f"## R.E.E.F. Archive\n\n> {t(lang,'footer_disclosure_archive')}\n\n### Available Records\n{items}\n\n→ [Terminal](/terminal/)")
         d = PUBLIC / pref / "archive"
         d.mkdir(parents=True, exist_ok=True)
