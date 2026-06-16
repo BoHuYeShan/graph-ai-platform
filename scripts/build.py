@@ -84,80 +84,78 @@ ARTICLE_TOOLBAR = """<div class="article-toolbar">
 def academic_shell(lang, title, content, toc_html="", other_url="/", stage=""):
     other_label = t(lang, 'lang_switch_to')
     prefix = "" if lang == "zh" else lang + "/"
-    ls = LANG_SWITCHER.format(other_url=other_url, other_label=other_label,
-        lang_label="EN" if lang == "zh" else "中文")
-    tb = ARTICLE_TOOLBAR.format(stage=stage) if stage else ""
+    ls = f'<span class="ac-lang-switch"><a href="{other_url}" title="{other_label}">{"EN" if lang == "zh" else "中文"}</a></span>'
+    tb = f'<div class="ac-toolbar"><button class="ac-tool-btn" onclick="window.scrollTo({{top:0,behavior:\'smooth\'}})">↑ Top</button><span class="ac-tool-stage" title="Review stage">{stage}</span></div>' if stage else ""
     return f"""<!DOCTYPE html>
 <html lang="{lang}">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{title} — {t(lang,'site_name')}</title>
-<link rel="stylesheet" href="/static/css/academic.css">
+<link rel="stylesheet" href="/static/css/theme.css">
 <link rel="stylesheet" href="/static/css/code.css">
 <script>MathJax={{tex:{{inlineMath:[['$','$'],['\\\\(','\\\\)']],displayMath:[['$$','$$'],['\\\\[','\\\\]']]}},svg:{{fontCache:'global'}}}};</script>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 </head>
-<body>
-<div class="journal-bar">
-  {t(lang,'journal_bar')} · <a href="/{prefix}about/">About</a>
-  <span style="float:right">{ls}</span>
+<body class="academic">
+<div class="ac-topbar">
+  {t(lang,'journal_bar')} · <a href="/{prefix}about/">About</a> {ls}
 </div>
-<header class="journal-masthead">
-  <div class="journal-name">{t(lang,'site_name')}</div>
-  <div class="journal-subtitle">{t(lang,'site_subtitle')}</div>
-  <div class="journal-meta">ISSN 2998-0001 (Online) · Established 2025 · Community Editorial Review</div>
+<header class="ac-masthead">
+  <div class="ac-journal-name">{t(lang,'site_name')}</div>
+  <div class="ac-subtitle">{t(lang,'site_subtitle')}</div>
+  <div class="ac-issn">ISSN 2998-0001 (Online) · Established 2025 · Community Editorial Review</div>
 </header>
-<nav class="journal-nav">
+<nav class="ac-nav">
   <a href="/{prefix}">{t(lang,'nav_home')}</a>
   <a href="/{prefix}papers/">{t(lang,'nav_papers')}</a>
   <a href="/{prefix}workshop/">{t(lang,'nav_workshop')}</a>
   <a href="/{prefix}about/">{t(lang,'nav_about')}</a>
 </nav>
-<div class="article-layout">
-  <aside class="article-sidebar">{toc_html}</aside>
-  <main class="academic-content">
+<div class="ac-layout">
+  <aside class="ac-sidebar"><nav class="ac-toc"><h4>Contents</h4>{toc_html}</nav></aside>
+  <main class="ac-main">
 {tb}
 {content}
   </main>
 </div>
-<footer class="journal-footer">
-  <div class="footer-disclosure">{t(lang,'footer_disclosure_academic')}</div>
-  <div class="footer-links">
-    <a href="/policies/disclaimer/">Disclaimer</a> · <a href="/policies/code-of-conduct/">Code of Conduct</a> ·
-    <a href="/policies/contributing/">Contributing</a> ·
-    <a href="https://github.com/{GITHUB_REPO}/issues/new?template=takedown.yml">Takedown</a> ·
+<footer class="ac-footer">
+  <div class="ac-footer-disclosure">{t(lang,'footer_disclosure_academic')}</div>
+  <div>
+    <a href="/policies/disclaimer/">Disclaimer</a> <a href="/policies/code-of-conduct/">Code of Conduct</a>
+    <a href="/policies/contributing/">Contributing</a>
+    <a href="https://github.com/{GITHUB_REPO}/issues/new?template=takedown.yml">Takedown</a>
     <a href="https://github.com/{GITHUB_REPO}">GitHub</a>
   </div>
-  <div class="journal-footer-watermark">Community Fictional Manuscript · Not a Journal Publication</div>
+  <div class="ac-footer-watermark">Community Fictional Manuscript · Not a Journal Publication</div>
 </footer>
 </body>
 </html>"""
 
-def archive_shell(lang, title, content, classification="", other_url="/"):
+def archive_shell(lang, title, content, classification="", other_url="/", toc_html="", stage=""):
     other_label = t(lang, 'lang_switch_to')
     pref = "" if lang == "zh" else lang + "/"
-    ls = LANG_SWITCHER.format(other_url=other_url, other_label=other_label,
-        lang_label="EN" if lang == "zh" else "中文")
+    ls = f'<a href="{other_url}">{"EN" if lang == "zh" else "中文"}</a>'
+    tb = f'<div class="ar-toolbar"><button class="ar-tool-btn" onclick="window.scrollTo({{top:0,behavior:\'smooth\'}})">↑ Top</button><span class="ar-tool-stage">{stage}</span></div>' if stage else ""
     return f"""<!DOCTYPE html>
 <html lang="{lang}">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>{title} — R.E.E.F. Archive</title>
-<link rel="stylesheet" href="/static/css/archive.css"><link rel="stylesheet" href="/static/css/code.css">
+<link rel="stylesheet" href="/static/css/theme.css"><link rel="stylesheet" href="/static/css/code.css">
 <script>MathJax={{tex:{{inlineMath:[['$','$'],['\\\\(','\\\\)']],displayMath:[['$$','$$'],['\\\\[','\\\\]']]}},svg:{{fontCache:'global'}}}};</script>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 </head>
-<body>
-<div class="archive-topbar">
+<body class="archive">
+<div class="ar-topbar">
   <span>R.E.E.F. ARCHIVE SYSTEM v4.0</span>
   <span><a href="/{pref}">Academic Portal</a> · <a href="/{pref}archive/">Archive</a> · {ls}</span>
 </div>
-<header class="archive-header">
-  <div class="archive-logo">R.E.E.F. ARCHIVE</div>
-  <div class="archive-tagline">Research Encyclopedia of Emerging Frontiers · Fictional Records Repository</div>
+<header class="ar-header">
+  <div class="ar-logo">R.E.E.F. ARCHIVE</div>
+  <div class="ar-tagline">Research Encyclopedia of Emerging Frontiers · Fictional Records Repository</div>
 </header>
-<nav class="archive-nav">
+<nav class="ar-nav">
   <a href="/{pref}archive/">{t(lang,'nav_archive_home')}</a>
   <a href="/{pref}archive/cosmos/">{t(lang,'nav_cosmos')}</a>
   <a href="/{pref}archive/records/">{t(lang,'nav_records')}</a>
@@ -165,14 +163,18 @@ def archive_shell(lang, title, content, classification="", other_url="/"):
   <a href="/terminal/">{t(lang,'nav_terminal')}</a>
 </nav>
 {classification}
-<main class="archive-content">
+<div class="ar-layout">
+  <aside class="ar-sidebar"><nav class="ar-toc"><h4>Contents</h4>{toc_html}</nav></aside>
+  <main class="ar-main">
+{tb}
 {content}
-</main>
-<footer class="archive-footer">
-  <div class="footer-disclosure">{t(lang,'footer_disclosure_archive')}</div>
+  </main>
+</div>
+<footer class="ar-footer">
+  <div class="ar-footer-disclosure">{t(lang,'footer_disclosure_archive')}</div>
   <div>
-    <a href="/policies/disclaimer/">Disclaimer</a> · <a href="/policies/code-of-conduct/">Code of Conduct</a> ·
-    <a href="/policies/contributing/">Contributing</a> ·
+    <a href="/policies/disclaimer/">Disclaimer</a> <a href="/policies/code-of-conduct/">Code of Conduct</a>
+    <a href="/policies/contributing/">Contributing</a>
     <a href="https://github.com/{GITHUB_REPO}/issues/new?template=takedown.yml">Takedown</a>
   </div>
 </footer>
@@ -184,27 +186,27 @@ def classification_banner(fm, lang="en"):
     ddi = fm.get("ddi", "0")
     dio = fm.get("dio", "—")
     grade_map = {
-        "FG-0": ("F-0", "SURFACE RIPPLE", "fissure-0"),
-        "FG-1": ("F-1", "MINOR FISSURE", "fissure-1"),
-        "FG-2": ("F-2", "STABLE FISSURE", "fissure-2"),
-        "FG-3": ("F-3", "DEEP RIFT", "fissure-3"),
-        "TG-1": ("Σ", "STANDARD", "sigma"), "TG-2": ("Σ", "STANDARD", "sigma"), "TG-3": ("Σ", "STANDARD", "sigma"),
+        "FG-0": ("F-0", "SURFACE RIPPLE", "ar-fissure-0"),
+        "FG-1": ("F-1", "MINOR FISSURE", "ar-fissure-1"),
+        "FG-2": ("F-2", "STABLE FISSURE", "ar-fissure-2"),
+        "FG-3": ("F-3", "DEEP RIFT", "ar-fissure-3"),
+        "TG-1": ("Σ", "STANDARD", "ar-sigma"), "TG-2": ("Σ", "STANDARD", "ar-sigma"), "TG-3": ("Σ", "STANDARD", "ar-sigma"),
     }
     label, desc, css_cls = grade_map.get(grade, ("F-0", "UNCLASSIFIED", "fissure-0"))
     ddi_colors = {"0":"#888","1":"#4a88aa","2":"#cc9944","3":"#cc6644","4":"#cc2222","5":"#000"}
     color = ddi_colors.get(str(ddi), "#888")
     return f"""
-<div class="classification-banner">
-<div class="classification-card">
-  <div class="class-header">{t(lang,'classification_label')} · OBJECT: ONTOLOGICAL FISSURE SIGNAL</div>
-  <div class="class-body">
-    <div class="class-level class-{css_cls}">{label} — {desc}</div>
-    <div class="class-props" style="margin-top:10px">
-      <span class="prop-label">DIO:</span><span class="prop-value">{dio}</span>
-      <span class="prop-label">FDI:</span><span class="prop-value" style="color:{color}">{ddi} / 5 — FISSURE DEVIATION INDEX</span>
-      <span class="prop-label">STATUS:</span><span class="prop-value">ARCHIVED · COMMUNITY SCREENING PASSED</span>
+<div class="ar-classification">
+<div class="ar-class-card">
+  <div class="ar-class-header">{t(lang,'classification_label')} · OBJECT: ONTOLOGICAL FISSURE SIGNAL</div>
+  <div class="ar-class-body">
+    <div class="ar-class-level {css_cls}">{label} — {desc}</div>
+    <div class="ar-class-props">
+      <span class="ar-prop-label">DIO:</span><span class="ar-prop-value">{dio}</span>
+      <span class="ar-prop-label">FDI:</span><span class="ar-prop-value" style="color:{color}">{ddi} / 5 — FISSURE DEVIATION INDEX</span>
+      <span class="ar-prop-label">STATUS:</span><span class="ar-prop-value">ARCHIVED · COMMUNITY SCREENING PASSED</span>
     </div>
-    <p style="margin-top:8px;font-size:0.78em;color:#888;">{t(lang,'classification_note')}</p>
+    <p style="margin-top:8px;font-size:0.72em;color:var(--ar-text-dim);">{t(lang,'classification_note')}</p>
   </div>
 </div>
 </div>"""
@@ -263,7 +265,7 @@ def build():
             # Archive page
             banner = classification_banner(fm, lang)
             arch_other = "/" + ("" if other_lang == "zh" else other_lang + "/") + "archive/papers/" + url_prefix + "/" if other_lang in langs else "/" + ("" if other_lang == "zh" else other_lang + "/") + "archive/"
-            arch = archive_shell(lang, title, body_html, banner, arch_other)
+            arch = archive_shell(lang, title, body_html, banner, arch_other, toc_html, stage)
             dest2 = PUBLIC / ("" if lang == "zh" else lang) / "archive" / "papers" / url_parts[0] / url_parts[1]
             dest2.mkdir(parents=True, exist_ok=True)
             (dest2 / "index.html").write_text(arch, encoding="utf-8")
