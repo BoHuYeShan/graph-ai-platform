@@ -275,9 +275,16 @@ def build():
     # ── Portal pages ──
     for lang, prefix in [("zh", ""), ("en", "en/")]:
         other = "/en/" if lang == "zh" else "/"
+        # Deduplicate manuscripts by DIO, keep one entry per DIO
+        seen_dio = set()
         ms_items = ""
         for ms in reversed(manuscripts_index):
-            ms_items += f'<li><div class="ms-title"><a href="/{ms["academic_url"]}">{ms["title"]}</a></div><div class="ms-meta">{ms["dio"]} · {ms["date"]} · [{ms["lang"]}]</div></li>'
+            if ms["dio"] in seen_dio: continue
+            seen_dio.add(ms["dio"])
+            # Build language badge
+            dio_langs = [m for m in manuscripts_index if m["dio"] == ms["dio"]]
+            lang_badges = " ".join(f'<span class="lang-badge">{m["lang"].upper()}</span>' for m in dio_langs)
+            ms_items += f'<li><div class="ms-title"><a href="{ms["academic_url"]}">{ms["title"]}</a> {lang_badges}</div><div class="ms-meta">{ms["dio"]} · {ms["date"]}</div></li>'
         # Home
         home = academic_shell(lang, "Home", f"<h1>Latest Manuscripts</h1><p>{t(lang,'footer_disclosure_academic')}</p><ul class=\"manuscript-list\">{ms_items}</ul>")
         (PUBLIC / (prefix if prefix else ".") / "index.html").write_text(home, encoding="utf-8")
@@ -289,13 +296,22 @@ def build():
         ws = md2html(f"## {t(lang,'nav_workshop')}\n\n1. Fork → Create → Submit PR → Community screening → Archive.\n\n**Community screening is not real peer review.**")
         (PUBLIC / prefix / "workshop").mkdir(parents=True, exist_ok=True)
         (PUBLIC / prefix / "workshop" / "index.html").write_text(academic_shell(lang, t(lang,'nav_workshop'), ws, "", other), encoding="utf-8")
-        # Papers list
+        # Papers list — deduplicate by DIO
+        seen_dio2 = set()
+        pl = ""
+        for ms in reversed(manuscripts_index):
+            if ms["dio"] in seen_dio2: continue
+            seen_dio2.add(ms["dio"])
+            pl += f'<li><div class="ms-title"><a href="{ms["academic_url"]}">{ms["title"]}</a></div><div class="ms-meta">{ms["dio"]} · {ms["date"]}</div></li>'
         (PUBLIC / prefix / "papers").mkdir(parents=True, exist_ok=True)
-        (PUBLIC / prefix / "papers" / "index.html").write_text(academic_shell(lang, t(lang,'nav_papers'), f"<h1>{t(lang,'nav_papers')}</h1><ul class=\"manuscript-list\">{ms_items}</ul>", "", other), encoding="utf-8")
-        # Archive home
+        (PUBLIC / prefix / "papers" / "index.html").write_text(academic_shell(lang, t(lang,'nav_papers'), f"<h1>{t(lang,'nav_papers')}</h1><ul class=\"manuscript-list\">{pl}</ul>", "", other), encoding="utf-8")
+        # Archive home — deduplicate by DIO
+        seen_dio = set()
         ai = ""
         for ms in reversed(manuscripts_index):
-            ai += f'- [{ms["dio"]} — {ms["title"]}](/{ms["archive_url"]}) `F-2 STABLE FISSURE` [{ms["lang"]}]\n'
+            if ms["dio"] in seen_dio: continue
+            seen_dio.add(ms["dio"])
+            ai += f'- [{ms["dio"]} — {ms["title"]}]({ms["archive_url"]}) `F-2 STABLE FISSURE`\n'
         ab2 = md2html(f"## R.E.E.F. Archive\n\n> {t(lang,'footer_disclosure_archive')}\n\n### Available Records\n{ai}\n\n→ [Terminal](/terminal/)")
         (PUBLIC / prefix / "archive").mkdir(parents=True, exist_ok=True)
         (PUBLIC / prefix / "archive" / "index.html").write_text(archive_shell(lang, "Archive Home", ab2, "", other), encoding="utf-8")
