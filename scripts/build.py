@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 """
-B.A.I.T. static site builder v3 — i18n support
-Three portals: Academic / Archive / Terminal
-Supports Chinese (zh), English (en), extensible to others.
+B.A.I.T. static site builder v4 — i18n + TOC sidebar + article controls
 """
 import shutil, re
 from pathlib import Path
 from markdown import Markdown
-from markdown.extensions import extra, codehilite
+from markdown.extensions import extra, codehilite, toc
 
 ROOT = Path(__file__).resolve().parent.parent
 CONTENT = ROOT / "content"
@@ -17,35 +15,26 @@ POLICIES = ROOT / "policies"
 DATA = ROOT / "data"
 GITHUB_REPO = "bohuyeshan/bait-core"
 
-# ── i18n loader ────────────────────────────────────────────
+# ── i18n ────────────────────────────────────────────────────
 def load_i18n():
-    """Load i18n.toml → {lang: {key: value}}"""
     i18n = {}
     path = DATA / "i18n.toml"
-    if not path.exists():
-        return {"zh": {}, "en": {}}
-    current_lang = None
+    if not path.exists(): return {"zh": {}, "en": {}}
+    cl = None
     for line in path.read_text(encoding="utf-8").split("\n"):
         line = line.strip()
-        if line.startswith("#") or not line:
-            continue
-        if line.startswith("[") and line.endswith("]"):
-            current_lang = line[1:-1]
-            i18n[current_lang] = {}
-        elif "=" in line and current_lang:
-            k, _, v = line.partition("=")
-            i18n[current_lang][k.strip()] = v.strip().strip('"')
+        if line.startswith("#") or not line: continue
+        if line.startswith("[") and line.endswith("]"): cl = line[1:-1]; i18n[cl] = {}
+        elif "=" in line and cl:
+            k, _, v = line.partition("="); i18n[cl][k.strip()] = v.strip().strip('"')
     return i18n
-
 I18N = load_i18n()
-
-def t(lang, key, fallback=""):
-    """Translate a key for a given language."""
-    return I18N.get(lang, {}).get(key, I18N.get("en", {}).get(key, fallback))
+def t(lang, key, fb=""): return I18N.get(lang, {}).get(key, I18N.get("en", {}).get(key, fb))
 
 # ── Markdown ──────────────────────────────────────────────
-md_engine = Markdown(extensions=['extra','codehilite'],
-    extension_configs={'codehilite':{'css_class':'highlight','guess_lang':False}})
+md_engine = Markdown(extensions=['extra','codehilite','toc'],
+    extension_configs={'codehilite':{'css_class':'highlight','guess_lang':False},
+                       'toc':{'permalink':False,'baselevel':2}})
 
 def parse_fm(text):
     fm, body = {}, text
@@ -68,18 +57,40 @@ def md2html(text):
     text = re.sub(r'\$(.+?)\$', save, text)
     html = md_engine.convert(text)
     md_engine.reset()
-    for k, v in blocks.items():
-        html = html.replace(k, v)
+    for k, v in blocks.items(): html = html.replace(k, v)
     return html
+
+def extract_toc(html):
+    """Extract h2/h3 from HTML to build a TOC sidebar list."""
+    headings = re.findall(r'<h([23])\s+id="([^"]+)"[^>]*>(.+?)</h[23]>', html)
+    if len(headings) < 2: return ""
+    items = ""
+    for level, aid, text in headings:
+        cls = "toc-h2" if level == "2" else "toc-h3"
+        items += f'<li class="{cls}"><a href="#{aid}">{text}</a></li>'
+    return f'<nav class="toc-sidebar"><h4>Contents</h4><ul>{items}</ul></nav>'
 
 # ── Shells ─────────────────────────────────────────────────
 
-def academic_shell(lang, title, content):
+LANG_SWITCHER = """<div class="lang-switch">
+  <a href="{other_url}" title="{other_label}">{lang_label}</a>
+</div>"""
+
+ARTICLE_TOOLBAR = """<div class="article-toolbar">
+  <button class="tool-btn" onclick="window.scrollTo({{top:0,behavior:'smooth'}})" title="Back to top">↑ Top</button>
+  <span class="tool-stage" title="Review stage">{stage}</span>
+</div>"""
+
+def academic_shell(lang, title, content, toc_html="", other_url="/", stage=""):
+    other_label = t(lang, 'lang_switch_to')
+    prefix = "" if lang == "zh" else lang + "/"
+    ls = LANG_SWITCHER.format(other_url=other_url, other_label=other_label,
+        lang_label="EN" if lang == "zh" else "中文")
+    tb = ARTICLE_TOOLBAR.format(stage=stage) if stage else ""
     return f"""<!DOCTYPE html>
 <html lang="{lang}">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{title} — {t(lang,'site_name')}</title>
 <link rel="stylesheet" href="/static/css/academic.css">
 <link rel="stylesheet" href="/static/css/code.css">
@@ -88,9 +99,8 @@ def academic_shell(lang, title, content):
 </head>
 <body>
 <div class="journal-bar">
-  {t(lang,'journal_bar')}
-  · <a href="/about/">About</a>
-  · <span style="float:right"><a href="/{'' if lang=='zh' else 'zh/' if lang=='en' else ''}">{t(lang,'lang_switch_to')}</a></span>
+  {t(lang,'journal_bar')} · <a href="/{prefix}about/">About</a>
+  <span style="float:right">{ls}</span>
 </div>
 <header class="journal-masthead">
   <div class="journal-name">{t(lang,'site_name')}</div>
@@ -98,57 +108,60 @@ def academic_shell(lang, title, content):
   <div class="journal-meta">ISSN 2998-0001 (Online) · Established 2025 · Community Editorial Review</div>
 </header>
 <nav class="journal-nav">
-  <a href="/{'' if lang=='zh' else lang+'/'}">{t(lang,'nav_home')}</a>
-  <a href="/{'' if lang=='zh' else lang+'/'}papers/">{t(lang,'nav_papers')}</a>
-  <a href="/{'' if lang=='zh' else lang+'/'}workshop/">{t(lang,'nav_workshop')}</a>
-  <a href="/{'' if lang=='zh' else lang+'/'}about/">{t(lang,'nav_about')}</a>
+  <a href="/{prefix}">{t(lang,'nav_home')}</a>
+  <a href="/{prefix}papers/">{t(lang,'nav_papers')}</a>
+  <a href="/{prefix}workshop/">{t(lang,'nav_workshop')}</a>
+  <a href="/{prefix}about/">{t(lang,'nav_about')}</a>
 </nav>
-<main class="academic-content">
+<div class="article-layout">
+  <aside class="article-sidebar">{toc_html}</aside>
+  <main class="academic-content">
+{tb}
 {content}
-</main>
+  </main>
+</div>
 <footer class="journal-footer">
   <div class="footer-disclosure">{t(lang,'footer_disclosure_academic')}</div>
   <div class="footer-links">
-    <a href="/policies/disclaimer/">Disclaimer</a>
-    <a href="/policies/code-of-conduct/">Code of Conduct</a>
-    <a href="/policies/contributing/">Contributing</a>
-    <a href="https://github.com/{GITHUB_REPO}/issues/new?template=takedown.yml">Takedown</a>
+    <a href="/policies/disclaimer/">Disclaimer</a> · <a href="/policies/code-of-conduct/">Code of Conduct</a> ·
+    <a href="/policies/contributing/">Contributing</a> ·
+    <a href="https://github.com/{GITHUB_REPO}/issues/new?template=takedown.yml">Takedown</a> ·
     <a href="https://github.com/{GITHUB_REPO}">GitHub</a>
   </div>
-  <div class="journal-footer-watermark">
-    Community Fictional Manuscript · Not a Journal Publication · Fictional Academic Workshop
-  </div>
+  <div class="journal-footer-watermark">Community Fictional Manuscript · Not a Journal Publication</div>
 </footer>
 </body>
 </html>"""
 
-def archive_shell(lang, title, content, classification=""):
+def archive_shell(lang, title, content, classification="", other_url="/"):
+    other_label = t(lang, 'lang_switch_to')
+    pref = "" if lang == "zh" else lang + "/"
+    ls = LANG_SWITCHER.format(other_url=other_url, other_label=other_label,
+        lang_label="EN" if lang == "zh" else "中文")
     return f"""<!DOCTYPE html>
 <html lang="{lang}">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>{title} — R.E.E.F. Archive</title>
-<link rel="stylesheet" href="/static/css/archive.css">
-<link rel="stylesheet" href="/static/css/code.css">
+<link rel="stylesheet" href="/static/css/archive.css"><link rel="stylesheet" href="/static/css/code.css">
 <script>MathJax={{tex:{{inlineMath:[['$','$'],['\\\\(','\\\\)']],displayMath:[['$$','$$'],['\\\\[','\\\\]']]}},svg:{{fontCache:'global'}}}};</script>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 </head>
 <body>
 <div class="archive-topbar">
-  <span>R.E.E.F. ARCHIVE SYSTEM v4.0 // DIMENSIONAL CONTAINMENT: ACTIVE</span>
-  <span><a href="/">→ Academic Portal</a> · <a href="/{'' if lang=='zh' else 'zh/' if lang=='en' else ''}archive/">{t(lang,'lang_switch_to')}</a></span>
+  <span>R.E.E.F. ARCHIVE SYSTEM v4.0</span>
+  <span><a href="/{pref}">Academic Portal</a> · <a href="/{pref}archive/">Archive</a> · {ls}</span>
 </div>
 <header class="archive-header">
   <div class="archive-logo">R.E.E.F. ARCHIVE</div>
   <div class="archive-tagline">Research Encyclopedia of Emerging Frontiers · Fictional Records Repository</div>
 </header>
 <nav class="archive-nav">
-  <a href="/{'' if lang=='zh' else lang+'/'}archive/">{t(lang,'nav_archive_home')}</a>
-  <a href="/{'' if lang=='zh' else lang+'/'}archive/cosmos/">{t(lang,'nav_cosmos')}</a>
-  <a href="/{'' if lang=='zh' else lang+'/'}archive/records/">{t(lang,'nav_records')}</a>
-  <a href="/{'' if lang=='zh' else lang+'/'}archive/wiki/">{t(lang,'nav_wiki')}</a>
+  <a href="/{pref}archive/">{t(lang,'nav_archive_home')}</a>
+  <a href="/{pref}archive/cosmos/">{t(lang,'nav_cosmos')}</a>
+  <a href="/{pref}archive/records/">{t(lang,'nav_records')}</a>
+  <a href="/{pref}archive/wiki/">{t(lang,'nav_wiki')}</a>
   <a href="/terminal/">{t(lang,'nav_terminal')}</a>
 </nav>
 {classification}
@@ -158,8 +171,7 @@ def archive_shell(lang, title, content, classification=""):
 <footer class="archive-footer">
   <div class="footer-disclosure">{t(lang,'footer_disclosure_archive')}</div>
   <div>
-    <a href="/policies/disclaimer/">Disclaimer</a> ·
-    <a href="/policies/code-of-conduct/">Code of Conduct</a> ·
+    <a href="/policies/disclaimer/">Disclaimer</a> · <a href="/policies/code-of-conduct/">Code of Conduct</a> ·
     <a href="/policies/contributing/">Contributing</a> ·
     <a href="https://github.com/{GITHUB_REPO}/issues/new?template=takedown.yml">Takedown</a>
   </div>
@@ -188,7 +200,7 @@ def classification_banner(fm, lang="en"):
   <div class="class-body">
     <div class="class-level class-{css_cls}">{label} — {desc}</div>
     <div class="class-props" style="margin-top:10px">
-      <span class="prop-label">DIO:</span><span class="prop-value">{dio} (internal fictional archive identifier)</span>
+      <span class="prop-label">DIO:</span><span class="prop-value">{dio}</span>
       <span class="prop-label">FDI:</span><span class="prop-value" style="color:{color}">{ddi} / 5 — FISSURE DEVIATION INDEX</span>
       <span class="prop-label">STATUS:</span><span class="prop-value">ARCHIVED · COMMUNITY SCREENING PASSED</span>
     </div>
@@ -199,8 +211,7 @@ def classification_banner(fm, lang="en"):
 
 # ── Build ──────────────────────────────────────────────────
 def build():
-    if PUBLIC.exists():
-        shutil.rmtree(PUBLIC)
+    if PUBLIC.exists(): shutil.rmtree(PUBLIC)
     PUBLIC.mkdir()
     shutil.copytree(STATIC, PUBLIC / "static", dirs_exist_ok=True)
     shutil.copy2(ROOT / "_dev.html", PUBLIC / "_dev.html")
@@ -208,148 +219,113 @@ def build():
     manuscripts_dir = CONTENT / "manuscripts"
     manuscripts_index = []
 
-    # ── Walk and build manuscript pages ──
+    # First pass: collect all manuscripts with their language info
+    manuscripts = {}  # dio -> {zh: (fm,body,path), en: (fm,body,path)}
     for md_path in sorted(manuscripts_dir.rglob("*.md")):
         rel = md_path.relative_to(manuscripts_dir)
         parts = list(rel.parts)
-        filename = parts[-1]  # index.md or index.en.md or index.ja.md
-
-        # Determine language
-        if filename == "index.md":
-            lang = "zh"  # default original language is zh
-        elif filename.startswith("index.") and filename.endswith(".md"):
-            lang = filename.rsplit(".", 2)[1]  # index.en.md → en
-        else:
-            continue
-
+        filename = parts[-1]
+        if filename == "index.md": lang = "zh"
+        elif filename.startswith("index.") and filename.endswith(".md"): lang = filename.rsplit(".", 2)[1]
+        else: continue
         text = md_path.read_text(encoding="utf-8")
         fm, body = parse_fm(text)
-        fm_lang = fm.get("lang", lang)
-        title = fm.get("title", "Untitled")
+        dio = fm.get("dio", "")
+        if dio not in manuscripts: manuscripts[dio] = {}
+        manuscripts[dio][lang] = (fm, body, parts[:-1])
 
-        # Build canonical URL prefix
-        # zh: /2025/0001/   en: /en/2025/0001/   ja: /ja/2025/0001/
-        url_parts = parts[:-1]  # year/seq
-        if fm_lang == "zh":
+    # Second pass: build pages
+    for dio, langs in manuscripts.items():
+        for lang, (fm, body, url_parts) in langs.items():
+            title = fm.get("title", "Untitled")
+            body_html = md2html(body)
+            toc_html = extract_toc(body_html)
+            stage = f"{fm.get('grade','?')} · {fm.get('review_status','?')}"
+
+            # Determine URLs for language switching
             url_prefix = "/".join(url_parts)
-        else:
-            url_prefix = fm_lang + "/" + "/".join(url_parts)
+            academic_url = "/" + ("" if lang == "zh" else lang + "/") + url_prefix + "/"
+            arch_url = "/" + ("" if lang == "zh" else lang + "/") + "archive/papers/" + url_prefix + "/"
 
-        body_html = md2html(body)
+            # Other language URL (for switcher)
+            other_lang = "en" if lang == "zh" else "zh"
+            if other_lang in langs:
+                other_url = "/" + ("" if other_lang == "zh" else other_lang + "/") + url_prefix + "/"
+            else:
+                other_url = "/" + ("" if other_lang == "zh" else other_lang + "/")
 
-        # Academic page
-        academic_page = academic_shell(fm_lang, title, body_html)
-        dest = PUBLIC / url_prefix
-        dest.mkdir(parents=True, exist_ok=True)
-        (dest / "index.html").write_text(academic_page, encoding="utf-8")
+            # Academic page
+            acad = academic_shell(lang, title, body_html, toc_html, other_url, stage)
+            dest = PUBLIC / ("" if lang == "zh" else lang) / url_parts[0] / url_parts[1]
+            dest.mkdir(parents=True, exist_ok=True)
+            (dest / "index.html").write_text(acad, encoding="utf-8")
 
-        # Archive page — always at /<lang>/archive/papers/...
-        banner = classification_banner(fm, fm_lang)
-        archive_page = archive_shell(fm_lang, title, body_html, banner)
-        arch_prefix = ("" if fm_lang == "zh" else fm_lang + "/") 
-        dest2 = PUBLIC / arch_prefix / "archive" / "papers" / url_parts[0] / url_parts[1]
-        dest2.mkdir(parents=True, exist_ok=True)
-        (dest2 / "index.html").write_text(archive_page, encoding="utf-8")
+            # Archive page
+            banner = classification_banner(fm, lang)
+            arch_other = "/" + ("" if other_lang == "zh" else other_lang + "/") + "archive/papers/" + url_prefix + "/" if other_lang in langs else "/" + ("" if other_lang == "zh" else other_lang + "/") + "archive/"
+            arch = archive_shell(lang, title, body_html, banner, arch_other)
+            dest2 = PUBLIC / ("" if lang == "zh" else lang) / "archive" / "papers" / url_parts[0] / url_parts[1]
+            dest2.mkdir(parents=True, exist_ok=True)
+            (dest2 / "index.html").write_text(arch, encoding="utf-8")
 
-        manuscripts_index.append({
-            "title": title, "dio": fm.get("dio",""), "lang": fm_lang,
-            "academic_url": "/" + url_prefix + "/",
-            "archive_url": "/" + arch_prefix + "archive/papers/" + "/".join(url_parts) + "/",
-            "date": fm.get("date",""), "grade": fm.get("grade","FG-2"),
-        })
+            manuscripts_index.append({"title": title, "dio": dio, "lang": lang,
+                "academic_url": academic_url, "archive_url": arch_url,
+                "date": fm.get("date",""), "grade": fm.get("grade","FG-2")})
 
-    # ── Academic portal pages ──
+    # ── Portal pages ──
     for lang, prefix in [("zh", ""), ("en", "en/")]:
-        # Homepage
+        other = "/en/" if lang == "zh" else "/"
         ms_items = ""
         for ms in reversed(manuscripts_index):
             ms_items += f'<li><div class="ms-title"><a href="/{ms["academic_url"]}">{ms["title"]}</a></div><div class="ms-meta">{ms["dio"]} · {ms["date"]} · [{ms["lang"]}]</div></li>'
-        home_html = academic_shell(lang, "Home", f"<h1>Latest Manuscripts</h1><p>{t(lang,'footer_disclosure_academic')}</p><ul class=\"manuscript-list\">{ms_items}</ul>")
-        d = PUBLIC / (prefix if prefix else "")
-        d.mkdir(parents=True, exist_ok=True)
-        (d / "index.html").write_text(home_html, encoding="utf-8")
-
+        # Home
+        home = academic_shell(lang, "Home", f"<h1>Latest Manuscripts</h1><p>{t(lang,'footer_disclosure_academic')}</p><ul class=\"manuscript-list\">{ms_items}</ul>")
+        (PUBLIC / (prefix if prefix else ".") / "index.html").write_text(home, encoding="utf-8")
         # About
-        about_body = md2html(f"""## {t(lang,'nav_about')}
-B.A.I.T. is a **community fictional academic manuscript workshop**.
-{t(lang,'footer_disclosure_academic')}
-### What We Are Not
-- Not a real academic journal
-- Not a preprint server
-- Not an indexing service
-- Not a certification body""")
-        d2 = PUBLIC / prefix / "about"
-        d2.mkdir(parents=True, exist_ok=True)
-        (d2 / "index.html").write_text(academic_shell(lang, t(lang,'nav_about'), about_body), encoding="utf-8")
-
+        ab = md2html(f"## {t(lang,'nav_about')}\n\nB.A.I.T. is a **community fictional academic manuscript workshop**.\n\n{t(lang,'footer_disclosure_academic')}")
+        (PUBLIC / prefix / "about").mkdir(parents=True, exist_ok=True)
+        (PUBLIC / prefix / "about" / "index.html").write_text(academic_shell(lang, t(lang,'nav_about'), ab, "", other), encoding="utf-8")
         # Workshop
-        workshop_body = md2html(f"""## {t(lang,'nav_workshop')}
-1. Fork → Create manuscript → Submit PR → Community screening → Archive
-### Review Pipeline
-| Stage | Description |
-|-------|-------------|
-| CAST | Submission Intake |
-| HOOK | Community Editorial Screening |
-| CATCH | Style & Safety Review |
-| RELEASE | Archive Publication |
-**Community screening is not real peer review.**""")
-        d3 = PUBLIC / prefix / "workshop"
-        d3.mkdir(parents=True, exist_ok=True)
-        (d3 / "index.html").write_text(academic_shell(lang, t(lang,'nav_workshop'), workshop_body), encoding="utf-8")
-
-        # Papers listing
-        d4 = PUBLIC / prefix / "papers"
-        d4.mkdir(parents=True, exist_ok=True)
-        (d4 / "index.html").write_text(academic_shell(lang, t(lang,'nav_papers'), f"<h1>{t(lang,'nav_papers')}</h1><ul class=\"manuscript-list\">{ms_items}</ul>"), encoding="utf-8")
-
-    # ── Archive portal pages ──
-    for lang in ["zh", "en"]:
-        pref = "" if lang == "zh" else lang + "/"
+        ws = md2html(f"## {t(lang,'nav_workshop')}\n\n1. Fork → Create → Submit PR → Community screening → Archive.\n\n**Community screening is not real peer review.**")
+        (PUBLIC / prefix / "workshop").mkdir(parents=True, exist_ok=True)
+        (PUBLIC / prefix / "workshop" / "index.html").write_text(academic_shell(lang, t(lang,'nav_workshop'), ws, "", other), encoding="utf-8")
+        # Papers list
+        (PUBLIC / prefix / "papers").mkdir(parents=True, exist_ok=True)
+        (PUBLIC / prefix / "papers" / "index.html").write_text(academic_shell(lang, t(lang,'nav_papers'), f"<h1>{t(lang,'nav_papers')}</h1><ul class=\"manuscript-list\">{ms_items}</ul>", "", other), encoding="utf-8")
         # Archive home
-        items = ""
+        ai = ""
         for ms in reversed(manuscripts_index):
-            items += f'- [{ms["dio"]} — {ms["title"]}](/{ms["archive_url"]}) `F-2 STABLE FISSURE` [{ms["lang"]}]\n'
-        arch_body = md2html(f"## R.E.E.F. Archive\n\n> {t(lang,'footer_disclosure_archive')}\n\n### Available Records\n{items}\n\n→ [Terminal](/terminal/)")
-        d = PUBLIC / pref / "archive"
-        d.mkdir(parents=True, exist_ok=True)
-        (d / "index.html").write_text(archive_shell(lang, "Archive Home", arch_body), encoding="utf-8")
-
-        # Sub-pages
+            ai += f'- [{ms["dio"]} — {ms["title"]}](/{ms["archive_url"]}) `F-2 STABLE FISSURE` [{ms["lang"]}]\n'
+        ab2 = md2html(f"## R.E.E.F. Archive\n\n> {t(lang,'footer_disclosure_archive')}\n\n### Available Records\n{ai}\n\n→ [Terminal](/terminal/)")
+        (PUBLIC / prefix / "archive").mkdir(parents=True, exist_ok=True)
+        (PUBLIC / prefix / "archive" / "index.html").write_text(archive_shell(lang, "Archive Home", ab2, "", other), encoding="utf-8")
+        # Archive sub-pages
         for sub in ["cosmos", "records", "wiki"]:
-            d2 = PUBLIC / pref / "archive" / sub
-            d2.mkdir(parents=True, exist_ok=True)
-            body = md2html(f"## {sub.title()}\n\n*{t(lang,'nav_'+sub) if t(lang,'nav_'+sub) else sub.title()} — under construction.*")
-            (d2 / "index.html").write_text(archive_shell(lang, sub.title(), body), encoding="utf-8")
+            (PUBLIC / prefix / "archive" / sub).mkdir(parents=True, exist_ok=True)
+            (PUBLIC / prefix / "archive" / sub / "index.html").write_text(archive_shell(lang, sub.title(), md2html(f"## {sub.title()}\n\n*Under construction.*"), "", other), encoding="utf-8")
 
     # ── Terminal ──
-    terminal_html = """<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Terminal Access — B.A.I.T. Archive</title>
-<link rel="stylesheet" href="/static/css/archive.css"><link rel="stylesheet" href="/static/css/terminal.css">
-</head>
-<body class="terminal-page">
-<div class="archive-topbar"><span>R.E.E.F. ARCHIVE TERMINAL // SESSION: ANONYMOUS</span><span><a href="/archive/">← Archive</a></span></div>
-<main class="terminal-wrapper"><div id="terminal"></div></main>
-<script src="/static/js/terminal.js"></script>
-</body></html>"""
     (PUBLIC / "terminal").mkdir(exist_ok=True)
-    (PUBLIC / "terminal" / "index.html").write_text(terminal_html, encoding="utf-8")
+    (PUBLIC / "terminal" / "index.html").write_text("""<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Terminal — B.A.I.T.</title>
+<link rel="stylesheet" href="/static/css/archive.css"><link rel="stylesheet" href="/static/css/terminal.css">
+</head><body class="terminal-page">
+<div class="archive-topbar"><span>R.E.E.F. TERMINAL // ANONYMOUS</span><span><a href="/archive/">← Archive</a></span></div>
+<main class="terminal-wrapper"><div id="terminal"></div></main>
+<script src="/static/js/terminal.js"></script></body></html>""", encoding="utf-8")
 
-    # ── Policy pages ──
-    policy_routes = {"DISCLAIMER.md":"disclaimer","CODE_OF_CONDUCT.md":"code-of-conduct",
-                     "CONTRIBUTING.md":"contributing","TAKEDOWN.md":"takedown","PRIVACY.md":"privacy"}
-    for src_name, slug in policy_routes.items():
-        src = POLICIES / src_name
-        if not src.exists(): continue
-        text = src.read_text(encoding="utf-8")
-        _, body = parse_fm(text)
-        page = academic_shell("en", src.stem.replace("_"," ").title(), md2html(body))
-        dest = PUBLIC / "policies" / slug
-        dest.mkdir(parents=True, exist_ok=True)
-        (dest / "index.html").write_text(page, encoding="utf-8")
+    # ── Policies ──
+    pr = {"DISCLAIMER.md":"disclaimer","CODE_OF_CONDUCT.md":"code-of-conduct","CONTRIBUTING.md":"contributing","TAKEDOWN.md":"takedown","PRIVACY.md":"privacy"}
+    for src, slug in pr.items():
+        p = POLICIES / src
+        if not p.exists(): continue
+        _, body = parse_fm(p.read_text(encoding="utf-8"))
+        d = PUBLIC / "policies" / slug
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "index.html").write_text(academic_shell("en", src.replace("_"," ").replace(".md","").title(), md2html(body)), encoding="utf-8")
 
-    print(f"Built {len(manuscripts_index)} manuscript(s) → {PUBLIC}")
+    print(f"Built {len(manuscripts_index)} manuscript(s)")
     for ms in manuscripts_index:
         print(f"  [{ms['lang']}] {ms['dio']} → {ms['academic_url']}")
 

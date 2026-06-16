@@ -239,9 +239,62 @@ body {
 }
 .manuscript-list .ms-authors { font-style: italic; color: var(--ink-light); }
 
+/* ── Language switcher ── */
+.lang-switch { display: inline; }
+.lang-switch a {
+  display: inline-block; padding: 2px 10px; border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 3px; color: #fff; text-decoration: none; font-size: 0.85em;
+  font-family: var(--font-ui);
+}
+.lang-switch a:hover { background: rgba(255,255,255,0.15); }
+
+/* ── Article layout (sidebar + content) ── */
+.article-layout {
+  max-width: 1020px; margin: 0 auto;
+  display: flex; gap: 40px; align-items: flex-start;
+}
+.article-sidebar {
+  width: 220px; flex-shrink: 0;
+  position: sticky; top: 20px;
+  padding-top: 48px;
+}
+.toc-sidebar {
+  font-family: var(--font-ui); font-size: 0.78em; line-height: 1.6;
+}
+.toc-sidebar h4 {
+  font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--ink-light); margin-bottom: 8px; font-weight: 600;
+}
+.toc-sidebar ul { list-style: none; padding: 0; }
+.toc-sidebar li { margin: 2px 0; }
+.toc-sidebar .toc-h2 a { color: var(--ink); font-weight: 500; text-decoration: none; }
+.toc-sidebar .toc-h3 a { color: var(--ink-light); font-size: 0.92em; text-decoration: none; padding-left: 12px; }
+.toc-sidebar a:hover { color: var(--accent); }
+
+.academic-content { flex: 1; min-width: 0; }
+
+/* ── Article toolbar (back to top + stage) ── */
+.article-toolbar {
+  position: fixed; right: 20px; bottom: 40px; z-index: 20;
+  display: flex; flex-direction: column; gap: 8px; align-items: flex-end;
+}
+.tool-btn {
+  background: var(--accent); color: #fff; border: none;
+  padding: 8px 14px; border-radius: 4px; cursor: pointer;
+  font-family: var(--font-ui); font-size: 0.78em;
+  opacity: 0.7; transition: opacity 0.2s;
+}
+.tool-btn:hover { opacity: 1; }
+.tool-stage {
+  font-family: var(--font-ui); font-size: 0.7em; color: #999;
+  background: var(--paper); border: 1px solid var(--border);
+  padding: 4px 10px; border-radius: 3px;
+}
+
 /* ── Responsive ── */
-@media (max-width: 600px) {
-  .academic-content { padding: 0 14px; margin: 28px auto; }
-  .journal-masthead { padding: 20px 14px 14px; }
-  .journal-nav { gap: 14px; padding: 8px 14px; }
+@media (max-width: 900px) {
+  .article-layout { flex-direction: column; gap: 0; }
+  .article-sidebar { width: 100%; position: static; padding-top: 0; }
+  .toc-sidebar { display: none; }
+  .article-toolbar { right: 10px; bottom: 20px; }
 }
