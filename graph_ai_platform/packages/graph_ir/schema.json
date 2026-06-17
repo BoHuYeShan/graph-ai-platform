@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "graph-ai IR",
+  "description": "Intermediate representation for Python ↔ Graph bidirectional editing",
+  "type": "object",
+  "required": ["graph", "sourceMap", "metadata"],
+  "properties": {
+    "graph": {
+      "type": "object",
+      "required": ["nodes", "edges"],
+      "properties": {
+        "nodes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "category", "type", "label", "inputs", "outputs"],
+            "properties": {
+              "id": {"type": "string", "pattern": "^node_[a-z0-9_]+$"},
+              "category": {"type": "string", "enum": ["control", "structure", "action", "data", "escape"]},
+              "type": {"type": "string"},
+              "label": {"type": "string"},
+              "value": {},
+              "inputs": {
+                "type": "array",
+                "items": {"type": "object", "required": ["name", "type"], "properties": {
+                  "name": {"type": "string"}, "type": {"type": "string"},
+                  "optional": {"type": "boolean"}
+                }}
+              },
+              "outputs": {
+                "type": "array",
+                "items": {"type": "object", "required": ["name", "type"], "properties": {
+                  "name": {"type": "string"}, "type": {"type": "string"}
+                }}
+              },
+              "children": {"type": "array", "items": {"type": "string"}},
+              "codeBlock": {"type": "string"}
+            }
+          }
+        },
+        "edges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "source", "target", "sourcePort", "targetPort"],
+            "properties": {
+              "id": {"type": "string"},
+              "source": {"type": "string"},
+              "target": {"type": "string"},
+              "sourcePort": {"type": "string"},
+              "targetPort": {"type": "string"},
+              "label": {"type": "string"}
+            }
+          }
+        },
+        "variables": {"type": "object", "additionalProperties": {"type": "string"}},
+        "scopes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {"type": "string"},
+              "parent": {"type": "string"},
+              "nodes": {"type": "array", "items": {"type": "string"}}
+            }
+          }
+        }
+      }
+    },
+    "view": {
+      "type": "object",
+      "properties": {
+        "nodePositions": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "x": {"type": "number"}, "y": {"type": "number"},
+              "collapsed": {"type": "boolean"},
+              "color": {"type": "string"}
+            }
+          }
+        },
+        "theme": {"type": "string"}
+      }
+    },
+    "sourceMap": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "lineStart": {"type": "integer"},
+          "lineEnd": {"type": "integer"},
+          "colStart": {"type": "integer"},
+          "colEnd": {"type": "integer"},
+          "sourceFile": {"type": "string"}
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["irVersion", "pythonSubset"],
+      "properties": {
+        "irVersion": {"type": "string", "enum": ["0.1.0"]},
+        "pythonSubset": {"type": "string", "enum": ["mvp-0.1"]},
+        "generatedAt": {"type": "string"},
+        "generatedBy": {"type": "string", "enum": ["parser", "ai", "manual"]}
+      }
+    }
+  }
+}
