@@ -1,19 +1,11 @@
-# CLI runtime — local only, never commit
-.codegraph/
-.opencode/
-.reasonix/
-reasonix.toml
+# Python-First Visual AI Platform
 
-# Design docs — local only, never push to public repo
-BAIT_Platform_Design_Doc_v5.1.md
-BAIT_Platform_Design_Doc_v6_supplement.md
-BAIT_V6_Worldview_Discussion.md
-BAIT_User_Messages_Summary.md
-BAIT_v5_Discussion_Points.md
-
-# Build output
-/public/
-
-# OS
+__pycache__/
+*.pyc
+node_modules/
+dist/
+.env
+.venv/
+venv/
+*.egg-info/
 .DS_Store
-Thumbs.db
