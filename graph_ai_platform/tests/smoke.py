@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Quick smoke test: parse → generate → compare."""
-import sys, json
-sys.path.insert(0, "graph_ai_platform")
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+os.chdir(os.path.join(os.path.dirname(__file__), ".."))
 from packages.parser import parse_source
 from packages.codegen import generate
 

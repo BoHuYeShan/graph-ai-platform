@@ -13,9 +13,11 @@ class PythonGenerator:
         self.ir = ir
         self.graph = Graph.from_dict(ir)
         self._node_map = {n.id: n for n in self.graph.nodes}
-        self._edge_map: dict[str, list[Edge]] = {}
+        self._edge_map: dict[str, list[Edge]] = {}  # source → edges
+        self._target_map: dict[str, list[Edge]] = {}  # target → edges
         for e in self.graph.edges:
             self._edge_map.setdefault(e.source, []).append(e)
+            self._target_map.setdefault(e.target, []).append(e)
         self._out: list[str] = []
         self._indent = 0
 
@@ -26,7 +28,8 @@ class PythonGenerator:
         if indent_delta > 0: self._indent += indent_delta
 
     def _targets_of(self, node_id: str) -> list[Edge]:
-        return self._edge_map.get(node_id, [])
+        """Edges where this node is the target (incoming)."""
+        return self._target_map.get(node_id, [])
 
     def _value_from_edge(self, edges: list[Edge], port="in") -> str:
         """Find an incoming edge to this node/port and emit the expression."""
