@@ -101,12 +101,10 @@ def md2html(text):
         html = _convert_md(sec)
         
         # Wrap sections based on position and content
-        if i == 0 and '<!--BLOCK:meta:' in html:
-            result_parts.append(html)  # metadata section, no extra wrapper
-        elif i == 0:
-            # First section before any --- is the header/intro
+        if i == 0:
             result_parts.append(html)
-        elif '<!--BLOCK:callout:' in html and ('社区虚构' in html or 'Community Manuscript' in html or '不构成现实' in html):
+        elif i == len(sections) - 1:
+            # Last section = disclaimer
             result_parts.append(f'<div class="ac-disclaimer-section">{html}</div>')
         else:
             result_parts.append(html)
