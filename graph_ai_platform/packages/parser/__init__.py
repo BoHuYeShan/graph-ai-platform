@@ -104,7 +104,7 @@ class PythonParser:
         self.graph.add_edge(func.id, node_id, "out", "callable")
         for i, arg in enumerate(n.args):
             arg_node = self.visit_expr(arg)
-            self.graph.add_edge(arg_node.id, node_id, f"arg_{i}")
+            self.graph.add_edge(arg_node.id, node_id, "out", f"arg_{i}")
         return node
 
     def visit_Subscript(self, n: ast.Subscript) -> Node:
@@ -131,7 +131,19 @@ class PythonParser:
             self.graph.add_edge(elt_node.id, node_id, "out", f"elt_{i}")
         return node
 
-    # Fallback: unsupported expression → CodeBlockNode
+    def visit_Compare(self, n: ast.Compare) -> Node:
+        left = self.visit_expr(n.left)
+        node_id = self._new_id("compare")
+        op_name = type(n.ops[0]).__name__ if n.ops else "?"
+        node = Node(id=node_id, category="data", type="compare", label=op_name,
+                    inputs=[PortDef("left"), PortDef("right")], outputs=[PortDef("out")])
+        self._record_source(node_id, n)
+        self.graph.add_node(node)
+        self.graph.add_edge(left.id, node_id, "out", "left")
+        for comp in n.comparators:
+            right = self.visit_expr(comp)
+            self.graph.add_edge(right.id, node_id, "out", "right")
+        return node
     def _fallback_expr(self, n: ast.expr) -> Node:
         code = ast.get_source_segment(self.source, n) or "?"
         node = _make_code_block(self._new_id("fb"), code)
@@ -148,6 +160,7 @@ class PythonParser:
         if isinstance(n, ast.Attribute): return self.visit_Attribute(n)
         if isinstance(n, ast.Subscript): return self.visit_Subscript(n)
         if isinstance(n, ast.List): return self.visit_List(n)
+        if isinstance(n, ast.Compare): return self.visit_Compare(n)
         if isinstance(n, ast.Tuple): return self._fallback_expr(n)  # TODO
         if isinstance(n, ast.Dict): return self._fallback_expr(n)   # TODO
         return self._fallback_expr(n)

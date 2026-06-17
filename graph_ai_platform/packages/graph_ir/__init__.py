@@ -110,7 +110,14 @@ class Graph:
     @classmethod
     def from_dict(cls, data: dict) -> "Graph":
         g = cls()
-        g.nodes = [Node(**n) for n in data.get("graph", {}).get("nodes", [])]
+        g.nodes = [Node(
+            id=n["id"], category=n["category"], type=n["type"], label=n["label"],
+            value=n.get("value"),
+            inputs=[PortDef(**p) if isinstance(p, dict) else p for p in n.get("inputs", [])],
+            outputs=[PortDef(**p) if isinstance(p, dict) else p for p in n.get("outputs", [])],
+            children=[c for c in n.get("children", [])],
+            codeBlock=n.get("codeBlock"),
+        ) for n in data.get("graph", {}).get("nodes", [])]
         g.edges = [Edge(**e) for e in data.get("graph", {}).get("edges", [])]
         g.variables = data.get("graph", {}).get("variables", {})
         g.scopes = [Scope(**s) for s in data.get("graph", {}).get("scopes", [])]
