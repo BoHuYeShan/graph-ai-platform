@@ -1,11 +1,24 @@
-# Python-First Visual AI Platform
-
+# Python
 __pycache__/
 *.pyc
-node_modules/
-dist/
-.env
+*.pyo
 .venv/
 venv/
 *.egg-info/
+
+# Node
+node_modules/
+dist/
+
+# OS
 .DS_Store
+Thumbs.db
+
+# CLI runtime — local only
+.codegraph/
+.opencode/
+.reasonix/
+reasonix.toml
+
+# BAIT design docs — local only
+BAIT_*.md
