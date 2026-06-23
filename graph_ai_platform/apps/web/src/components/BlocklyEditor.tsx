@@ -107,12 +107,19 @@ pythonGenerator.forBlock['py_assign'] = (block) => {
   return [`${varName} = ${val}\n`, 0]
 }
 
-// ── IR tree → Blockly XML ──
+// ── IR tree → Blockly XML (with proper <next> chaining) ──
 function buildXML(ir: IRGraph): string {
   const nodeMap = new Map(ir.graph.nodes.map(n => [n.id, n]))
   const allChildren = new Set<string>()
-  for (const n of ir.graph.nodes) for (const c of n.children) allChildren.add(c)
+  for (const n of ir.graph.nodes) for (const c of n.children || []) allChildren.add(c)
 
+  // Helper: find value node from edge
+  function valueNode(nodeId: string, port: string) {
+    const e = ir.graph.edges.find(e => e.target === nodeId && e.targetPort === port)
+    return e ? nodeMap.get(e.source) : null
+  }
+
+  // Expression → Block XML
   function emitExpr(node: typeof ir.graph.nodes[0]): string {
     switch (node.type) {
       case 'literal':
@@ -121,67 +128,52 @@ function buildXML(ir: IRGraph): string {
         return `<block type="variables_get" id="${node.id}"><field name="VAR">${node.label}</field></block>`
       case 'binop': {
         const opMap: Record<string, string> = { Add: 'ADD', Sub: 'MINUS', Mult: 'MULTIPLY', Div: 'DIVIDE' }
-        const edges = ir.graph.edges.filter(e => e.target === node.id)
-        const leftEdge = edges.find(e => e.targetPort === 'left')
-        const rightEdge = edges.find(e => e.targetPort === 'right')
-        const leftNode = leftEdge ? nodeMap.get(leftEdge.source) : null
-        const rightNode = rightEdge ? nodeMap.get(rightEdge.source) : null
-        return `<block type="math_arithmetic" id="${node.id}"><field name="OP">${opMap[node.label] || 'ADD'}</field><value name="A">${leftNode ? emitExpr(leftNode) : '<shadow type="math_number"><field name="NUM">0</field></shadow>'}</value><value name="B">${rightNode ? emitExpr(rightNode) : '<shadow type="math_number"><field name="NUM">0</field></shadow>'}</value></block>`
+        const left = valueNode(node.id, 'left')
+        const right = valueNode(node.id, 'right')
+        const lx = left ? emitExpr(left) : '<shadow type="math_number"><field name="NUM">0</field></shadow>'
+        const rx = right ? emitExpr(right) : '<shadow type="math_number"><field name="NUM">0</field></shadow>'
+        return `<block type="math_arithmetic" id="${node.id}"><field name="OP">${opMap[node.label] || 'ADD'}</field><value name="A">${lx}</value><value name="B">${rx}</value></block>`
       }
-      case 'call': {
+      case 'call':
         return `<block type="procedures_callnoreturn" id="${node.id}"><mutation name="${node.label}"/></block>`
-      }
-      case 'compare': {
+      case 'compare':
         return `<block type="logic_compare" id="${node.id}"><field name="OP">GT</field></block>`
-      }
       default:
         return `<block type="math_number" id="${node.id}"><field name="NUM">0</field></block>`
     }
   }
 
+  // Statement → Block XML, with optional next chain
   function emitStmt(node: typeof ir.graph.nodes[0]): string {
     switch (node.type) {
       case 'assign': {
-        const edges = ir.graph.edges.filter(e => e.target === node.id)
-        const valEdge = edges.find(e => e.targetPort === 'value')
-        const valNode = valEdge ? nodeMap.get(valEdge.source) : null
-        const valXML = valNode ? emitExpr(valNode) : '<shadow type="math_number"><field name="NUM">0</field></shadow>'
-        return `<block type="py_assign" id="${node.id}"><field name="VAR">${node.label}</field><value name="VALUE">${valXML}</value></block>`
+        const val = valueNode(node.id, 'value')
+        const vx = val ? emitExpr(val) : '<shadow type="math_number"><field name="NUM">0</field></shadow>'
+        return `<block type="py_assign" id="${node.id}"><field name="VAR">${node.label}</field><value name="VALUE">${vx}</value></block>`
       }
       case 'return': {
-        const edges = ir.graph.edges.filter(e => e.target === node.id)
-        const valEdge = edges.find(e => e.targetPort === 'value')
-        const valNode = valEdge ? nodeMap.get(valEdge.source) : null
-        const valXML = valNode ? emitExpr(valNode) : ''
-        return `<block type="py_return" id="${node.id}"><value name="VALUE">${valXML}</value></block>`
+        const val = valueNode(node.id, 'value')
+        const vx = val ? emitExpr(val) : ''
+        return `<block type="py_return" id="${node.id}"><value name="VALUE">${vx}</value></block>`
       }
       case 'if': {
-        const bodyXML = node.children.map(cid => {
-          const cn = nodeMap.get(cid)
-          return cn ? emitStmt(cn) : ''
-        }).filter(Boolean).join('')
-        // Use controls_if for if blocks — it has a C-shaped body
+        const bodyBlocks = node.children.map(c => nodeMap.get(c)).filter(Boolean) as typeof ir.graph.nodes
+        const bodyXML = chain(bodyBlocks.map(b => emitStmt(b)))
         return `<block type="controls_if" id="${node.id}"><value name="IF0"><shadow type="logic_boolean"><field name="BOOL">TRUE</field></shadow></value><statement name="DO0">${bodyXML}</statement></block>`
       }
       case 'while': {
-        const bodyXML = node.children.map(cid => {
-          const cn = nodeMap.get(cid)
-          return cn ? emitStmt(cn) : ''
-        }).filter(Boolean).join('')
+        const bodyBlocks = node.children.map(c => nodeMap.get(c)).filter(Boolean) as typeof ir.graph.nodes
+        const bodyXML = chain(bodyBlocks.map(b => emitStmt(b)))
         return `<block type="py_while" id="${node.id}"><value name="TEST"><shadow type="logic_boolean"><field name="BOOL">TRUE</field></shadow></value><statement name="BODY">${bodyXML}</statement></block>`
       }
       case 'for': {
-        const bodyXML = node.children.map(cid => {
-          const cn = nodeMap.get(cid)
-          return cn ? emitStmt(cn) : ''
-        }).filter(Boolean).join('')
+        const bodyBlocks = node.children.map(c => nodeMap.get(c)).filter(Boolean) as typeof ir.graph.nodes
+        const bodyXML = chain(bodyBlocks.map(b => emitStmt(b)))
         return `<block type="controls_for" id="${node.id}"><field name="VAR">${node.label}</field><value name="TO"><shadow type="math_number"><field name="NUM">10</field></shadow></value><statement name="DO">${bodyXML}</statement></block>`
       }
       case 'function_def': {
-        const bodyXML = node.children.map(cid => {
-          const cn = nodeMap.get(cid)
-          return cn ? emitStmt(cn) : ''
-        }).filter(Boolean).join('')
+        const bodyBlocks = node.children.map(c => nodeMap.get(c)).filter(Boolean) as typeof ir.graph.nodes
+        const bodyXML = chain(bodyBlocks.map(b => emitStmt(b)))
         return `<block type="py_function_def" id="${node.id}"><field name="NAME">${node.label}</field><field name="ARGS"></field><statement name="BODY">${bodyXML}</statement></block>`
       }
       case 'import':
@@ -193,12 +185,36 @@ function buildXML(ir: IRGraph): string {
     }
   }
 
-  // Top-level (non-child) nodes — emit as siblings, no <next> chaining
-  // (Blockly places all sibling <block> elements in the workspace)
+  // Chain multiple block XML strings via DOM manipulation
+  function chain(blocks: string[]): string {
+    if (blocks.length === 0) return ''
+    if (blocks.length === 1) return blocks[0]
+    const xml = `<xml xmlns="https://developers.google.com/blockly/xml">${blocks.join('')}</xml>`
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(xml, 'text/xml')
+    const allBlocks = Array.from(doc.querySelectorAll('block'))
+    for (let i = 0; i < allBlocks.length - 1; i++) {
+      const nextEl = doc.createElement('next')
+      // The next block is always at index 1 in the CURRENT doc tree
+      // (after removing the previous next block from the root level)
+      const remaining = doc.querySelectorAll('block')
+      if (remaining.length > 1) {
+        const target = remaining[1]
+        nextEl.appendChild(target)
+        allBlocks[i].appendChild(nextEl)
+      }
+    }
+    // Only serialize the top-level blocks (direct children of <xml>)
+    const serializer = new XMLSerializer()
+    const topBlocks = Array.from(doc.documentElement.children)
+      .filter(el => el.tagName === 'block')
+    return topBlocks.map(el => serializer.serializeToString(el)).join('')
+  }
+
+  // Top-level (non-child) nodes
   const topLevel = ir.graph.nodes.filter(n => !allChildren.has(n.id))
   const topXML = topLevel.map(n => emitStmt(n)).filter(Boolean)
-
-  return topXML.join('')
+  return chain(topXML)
 }
 
 export function BlocklyEditor({ ir, onCodeChange }: BlocklyEditorProps) {
