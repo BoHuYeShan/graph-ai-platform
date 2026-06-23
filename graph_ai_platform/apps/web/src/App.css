@@ -18,8 +18,8 @@ html, body, #root {
 /* ── Toolbar ── */
 .toolbar {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
   padding: 6px 12px;
   background: #1a1a1a;
@@ -38,6 +38,15 @@ html, body, #root {
   font-size: 14px;
   margin-right: 12px;
 }
+
+.toolbar-status {
+  font-size: 11px;
+  color: #666;
+  margin-left: 8px;
+}
+
+.status-ok { color: #10b981; }
+.status-error { color: #ef4444; }
 
 .toolbar-views button, .toolbar button {
   background: #2a2a2a;
@@ -140,6 +149,16 @@ html, body, #root {
   cursor: not-allowed;
 }
 
+.btn-run {
+  background: #10b981 !important;
+  color: white !important;
+  border-color: #10b981 !important;
+  font-weight: 600;
+}
+.btn-run:disabled {
+  opacity: 0.6;
+}
+
 .panel-code {
   border-right: 1px solid #333;
 }
@@ -155,4 +174,44 @@ html, body, #root {
 /* ── Custom nodes ── */
 .custom-node:hover {
   box-shadow: 0 0 12px rgba(255,255,255,0.08);
+}
+
+/* ── Output panel ── */
+.output-panel {
+  border-top: 1px solid #333;
+  background: #0d0d0d;
+  max-height: 200px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.output-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 12px;
+  background: #1a1a1a;
+  font-size: 12px;
+  color: #888;
+}
+
+.output-header button {
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.output-body {
+  flex: 1;
+  overflow: auto;
+  padding: 8px 12px;
+  margin: 0;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #10b981;
+  white-space: pre-wrap;
 }

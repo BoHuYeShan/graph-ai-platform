@@ -50,6 +50,18 @@ class PromptRequest(BaseModel):
     ir: dict
     instruction: str
 
+class LintRequest(BaseModel):
+    source: str
+
+class LintResult(BaseModel):
+    line: int
+    col: int
+    message: str
+    severity: str  # "error" | "warning"
+
+class LintResponse(BaseModel):
+    issues: list[LintResult]
+
 # ── Endpoints ──
 
 @app.get("/health")
@@ -93,6 +105,29 @@ def normalize_endpoint(req: NormalizeRequest):
         return {"ir": ir, "issues": issues, "status": "ok"}
     except Exception as e:
         raise HTTPException(500, f"Normalize error: {e}")
+
+@app.post("/lint")
+def lint_endpoint(req: LintRequest):
+    """Check Python source for syntax errors."""
+    import ast, traceback
+    issues = []
+    source = req.source
+    try:
+        ast.parse(source)
+    except SyntaxError as e:
+        issues.append(LintResult(
+            line=e.lineno or 1,
+            col=e.offset or 1,
+            message=f"SyntaxError: {e.msg}",
+            severity="error",
+        ))
+    except Exception as e:
+        issues.append(LintResult(
+            line=1, col=1,
+            message=f"Parse error: {e}",
+            severity="error",
+        ))
+    return LintResponse(issues=issues)
 
 @app.post("/ai/edit")
 def ai_edit_endpoint(req: AIEditRequest):

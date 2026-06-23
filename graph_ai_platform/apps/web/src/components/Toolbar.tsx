@@ -1,26 +1,17 @@
-import { useState } from 'react'
-
 interface ToolbarProps {
   view: 'code' | 'graph' | 'split'
   onViewChange: (view: 'code' | 'graph' | 'split') => void
-  onAIEdit: (instruction: string) => void
+  onGenerate: () => void
+  onRun: () => void
+  running: boolean
+  status: { nodeCount: number; edgeCount: number; error: string }
 }
 
-export function Toolbar({ view, onViewChange, onAIEdit }: ToolbarProps) {
-  const [aiInput, setAiInput] = useState('')
-  const [showAI, setShowAI] = useState(false)
-
-  const handleSubmit = () => {
-    if (aiInput.trim()) {
-      onAIEdit(aiInput.trim())
-      setAiInput('')
-    }
-  }
-
+export function Toolbar({ view, onViewChange, onGenerate, onRun, running, status }: ToolbarProps) {
   return (
     <div className="toolbar">
       <div className="toolbar-left">
-        <span className="toolbar-title">🕸️ graph-ai</span>
+        <span className="toolbar-title">🧩 PyGraph</span>
         <div className="toolbar-views">
           <button className={view === 'code' ? 'active' : ''} onClick={() => onViewChange('code')}>
             Code
@@ -32,33 +23,22 @@ export function Toolbar({ view, onViewChange, onAIEdit }: ToolbarProps) {
             Graph
           </button>
         </div>
+        <span className="toolbar-status">
+          {status.error ? (
+            <span className="status-error">{status.error}</span>
+          ) : (
+            <span className="status-ok">
+              {status.nodeCount} nodes · {status.edgeCount} edges
+            </span>
+          )}
+        </span>
       </div>
       <div className="toolbar-right">
-        <button onClick={() => setShowAI(!showAI)}>
-          🤖 AI Edit
+        <button onClick={onGenerate}>Generate →</button>
+        <button className="btn-run" onClick={onRun} disabled={running}>
+          {running ? '⏳' : '▶'} Run
         </button>
-        <a
-          href="http://localhost:8765/docs"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="toolbar-link"
-        >
-          API
-        </a>
       </div>
-      {showAI && (
-        <div className="toolbar-ai-bar">
-          <input
-            type="text"
-            value={aiInput}
-            onChange={(e) => setAiInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-            placeholder="Describe the edit you want to make..."
-            className="ai-input"
-          />
-          <button onClick={handleSubmit}>Apply</button>
-        </div>
-      )}
     </div>
   )
 }
