@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { GraphView } from './components/GraphView'
-import { PuzzleEditor } from './components/PuzzleEditor'
+import { BlocklyEditor } from './components/BlocklyEditor'
 import { CodeView } from './components/CodeView'
 import { Toolbar } from './components/Toolbar'
 import type { IRGraph } from './types/ir'
@@ -131,7 +131,7 @@ function App() {
         )}
         {view !== 'code' && (
           <div className="panel panel-graph">
-            {viewMode === 'blueprint' ? <GraphView ir={ir} /> : <PuzzleEditor ir={ir} />}
+            {viewMode === 'blueprint' ? <GraphView ir={ir} /> : <BlocklyEditor ir={ir} />}
           </div>
         )}
       </div>

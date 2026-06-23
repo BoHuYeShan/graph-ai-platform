@@ -127,9 +127,9 @@ export function PuzzleEditor({ ir }: PuzzleEditorProps) {
     render.addPreset(Presets.classic.setup())
     connection.addPreset(ConnectionPresets.classic.setup())
 
+    editor.use(area)
     area.use(connection)
     area.use(render)
-    editor.use(area)
     AreaExtensions.selectableNodes(area, AreaExtensions.selector(), { accumulating: AreaExtensions.accumulateOnCtrl() })
     AreaExtensions.simpleNodesOrder(area)
 
