@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 import { GraphView } from './components/GraphView'
 import { BlocklyEditor } from './components/BlocklyEditor'
 import { CodeView } from './components/CodeView'
+import { FileTree } from './components/FileTree'
 import { Toolbar } from './components/Toolbar'
 import type { IRGraph } from './types/ir'
 import { sampleCode, sampleIR } from './data/samples'
@@ -18,6 +19,9 @@ function App() {
   const [status, setStatus] = useState({ nodeCount: 0, edgeCount: 0, error: '' })
   const [output, setOutput] = useState('')
   const [running, setRunning] = useState(false)
+  const [workspaceName] = useState('my_project')
+  const [currentFile, setCurrentFile] = useState('main.py')
+  const [showFileTree, setShowFileTree] = useState(true)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const abortRef = useRef<AbortController | null>(null)
 
@@ -101,6 +105,26 @@ function App() {
     setRunning(false)
   }, [ir])
 
+  // File selection → load file into editor
+  const handleFileSelect = useCallback(async (path: string) => {
+    setCurrentFile(path)
+    try {
+      const res = await fetch('/api/workspace/read', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: workspaceName, path }),
+      })
+      const data = await res.json()
+      if (data.content) {
+        setCode(data.content)
+        codeRef.current = data.content
+        doParse(data.content)
+      }
+    } catch (e) {
+      console.error('File read error:', e)
+    }
+  }, [workspaceName, doParse])
+
   // Initial parse
   useEffect(() => {
     doParse(sampleCode)
@@ -124,19 +148,31 @@ function App() {
         onViewModeChange={setViewMode}
         onGenerate={handleGenerate}
         onRun={handleRun}
+        onToggleFileTree={() => setShowFileTree(s => !s)}
+        showFileTree={showFileTree}
         running={running}
         status={status}
       />
       <div className={`main-area view-${view}`}>
-        {view !== 'graph' && (
-          <div className="panel panel-code">
-            <CodeView value={code} onChange={handleCodeChange} />
-          </div>
-        )}
-        {view !== 'code' && (
-          <div className="panel panel-graph">
-            {viewMode === 'blueprint' ? <GraphView ir={ir} /> : <BlocklyEditor ir={ir} onCodeChange={handleCodeChange} />}
-          </div>
+        <div className="editor-area">
+          {view !== 'graph' && (
+            <div className="panel panel-code">
+              <CodeView value={code} onChange={handleCodeChange} />
+            </div>
+          )}
+          {view !== 'code' && (
+            <div className="panel panel-graph">
+              {viewMode === 'blueprint' ? <GraphView ir={ir} /> : <BlocklyEditor ir={ir} onCodeChange={handleCodeChange} />}
+            </div>
+          )}
+        </div>
+        {showFileTree && (
+          <FileTree
+            workspaceName={workspaceName}
+            onFileSelect={handleFileSelect}
+            onFileCreate={(p) => console.log('Create:', p)}
+            selectedPath={currentFile}
+          />
         )}
       </div>
       {output && (

@@ -19,9 +19,12 @@ from packages.codegen import generate as codegen_generate
 from services.runtime import execute_ir
 from services.core.normalize_service import validate_ir, auto_fix
 from services.core.ai_editor import AIEditor, build_edit_prompt, parse_llm_response, SYSTEM_PROMPT
+from services.core.workspace_service import WorkspaceService
 
-app = FastAPI(title="graph-ai Platform API", version="0.1.0")
+app = FastAPI(title="PyGraph API", version="0.1.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+
+ws_service = WorkspaceService()
 
 # ── Request / Response models ──
 
@@ -50,6 +53,27 @@ class PromptRequest(BaseModel):
     ir: dict
     instruction: str
 
+class WorkspaceListRequest(BaseModel):
+    name: str
+    subpath: str = ""
+
+class WorkspaceReadRequest(BaseModel):
+    name: str
+    path: str
+
+class WorkspaceWriteRequest(BaseModel):
+    name: str
+    path: str
+    content: str
+
+class WorkspaceCreateRequest(BaseModel):
+    name: str
+    path: str
+
+class WorkspaceDeleteRequest(BaseModel):
+    name: str
+    path: str
+
 class LintRequest(BaseModel):
     source: str
 
@@ -67,6 +91,44 @@ class LintResponse(BaseModel):
 @app.get("/health")
 def health():
     return {"status": "ok", "version": "0.1.0"}
+
+# ── Workspace endpoints ──
+
+@app.get("/workspace/list")
+def ws_list():
+    return {"workspaces": ws_service.list_workspaces()}
+
+@app.post("/workspace/files")
+def ws_files(req: WorkspaceListRequest):
+    return {"files": ws_service.list_files(req.name, req.subpath)}
+
+@app.post("/workspace/read")
+def ws_read(req: WorkspaceReadRequest):
+    content = ws_service.read_file(req.name, req.path)
+    if content is None:
+        raise HTTPException(404, "File not found")
+    return {"content": content, "path": req.path}
+
+@app.post("/workspace/write")
+def ws_write(req: WorkspaceWriteRequest):
+    ok = ws_service.write_file(req.name, req.path, req.content)
+    if not ok:
+        raise HTTPException(400, "Cannot write file (path may be invalid)")
+    return {"status": "ok"}
+
+@app.post("/workspace/create")
+def ws_create(req: WorkspaceCreateRequest):
+    ok = ws_service.create_file(req.name, req.path)
+    if not ok:
+        raise HTTPException(400, "Cannot create file")
+    return {"status": "ok"}
+
+@app.post("/workspace/delete")
+def ws_delete(req: WorkspaceDeleteRequest):
+    ok = ws_service.delete(req.name, req.path)
+    if not ok:
+        raise HTTPException(400, "Cannot delete")
+    return {"status": "ok"}
 
 @app.post("/parse", response_model=IRResponse)
 def parse_endpoint(req: ParseRequest):

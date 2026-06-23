@@ -5,17 +5,23 @@ interface ToolbarProps {
   onViewModeChange: (mode: 'blueprint' | 'puzzle') => void
   onGenerate: () => void
   onRun: () => void
+  onToggleFileTree: () => void
+  showFileTree: boolean
   running: boolean
   status: { nodeCount: number; edgeCount: number; error: string }
 }
 
 export function Toolbar({
   view, viewMode, onViewChange, onViewModeChange,
-  onGenerate, onRun, running, status
+  onGenerate, onRun, onToggleFileTree, showFileTree,
+  running, status
 }: ToolbarProps) {
   return (
     <div className="toolbar">
       <div className="toolbar-left">
+        <button className="toolbar-icon-btn" onClick={onToggleFileTree} title="Toggle file tree">
+          {showFileTree ? '📂' : '📁'}
+        </button>
         <span className="toolbar-title">🧩 PyGraph</span>
         <div className="toolbar-views">
           <button className={view === 'code' ? 'active' : ''} onClick={() => onViewChange('code')}>
