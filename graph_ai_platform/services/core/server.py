@@ -92,7 +92,9 @@ def execute_endpoint(req: ExecuteRequest):
         result = execute_ir(req.ir)
         return {"variables": result, "status": "ok"}
     except Exception as e:
-        raise HTTPException(500, f"Execute error: {e}")
+        import traceback
+        detail = traceback.format_exc()
+        raise HTTPException(500, detail=f"Execute error: {e}\n{detail}")
 
 @app.post("/normalize")
 def normalize_endpoint(req: NormalizeRequest):

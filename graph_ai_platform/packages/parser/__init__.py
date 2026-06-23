@@ -96,8 +96,15 @@ class PythonParser:
     def visit_Call(self, n: ast.Call) -> Node:
         func = self.visit_expr(n.func)
         node_id = self._new_id("call")
+        # Extract real function name
+        if isinstance(n.func, ast.Name):
+            fn_label = n.func.id
+        elif isinstance(n.func, ast.Attribute):
+            fn_label = f"{n.func.attr}"
+        else:
+            fn_label = "call"
         inputs = [PortDef(f"arg_{i}") for i in range(len(n.args))]
-        node = Node(id=node_id, category="action", type="call", label="call",
+        node = Node(id=node_id, category="action", type="call", label=fn_label,
                     inputs=inputs, outputs=[PortDef("result")])
         self._record_source(node_id, n)
         self.graph.add_node(node)
@@ -175,7 +182,8 @@ class PythonParser:
         return node.id
 
     def visit_Expr(self, n: ast.Expr) -> str | None:
-        return self.visit_expr(n.value).id if self.visit_expr(n.value) else None
+        val = self.visit_expr(n.value)
+        return val.id if val else None
 
     def visit_Assign(self, n: ast.Assign) -> str | None:
         value = self.visit_expr(n.value)

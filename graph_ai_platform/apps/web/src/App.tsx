@@ -11,6 +11,7 @@ const PARSE_DEBOUNCE_MS = 600
 
 function App() {
   const [code, setCode] = useState(sampleCode)
+  const codeRef = useRef(sampleCode)
   const [ir, setIr] = useState<IRGraph>(sampleIR)
   const [view, setView] = useState<'code' | 'graph' | 'split'>('split')
   const [viewMode, setViewMode] = useState<'blueprint' | 'puzzle'>('blueprint')
@@ -56,6 +57,9 @@ function App() {
 
   const handleCodeChange = useCallback((newCode: string) => {
     setCode(newCode)
+    // Skip if code hasn't actually changed (prevents circular loop)
+    if (newCode === codeRef.current) return
+    codeRef.current = newCode
     if (timerRef.current) clearTimeout(timerRef.current)
     timerRef.current = setTimeout(() => doParse(newCode), PARSE_DEBOUNCE_MS)
   }, [doParse])
@@ -131,7 +135,7 @@ function App() {
         )}
         {view !== 'code' && (
           <div className="panel panel-graph">
-            {viewMode === 'blueprint' ? <GraphView ir={ir} /> : <BlocklyEditor ir={ir} />}
+            {viewMode === 'blueprint' ? <GraphView ir={ir} /> : <BlocklyEditor ir={ir} onCodeChange={handleCodeChange} />}
           </div>
         )}
       </div>
