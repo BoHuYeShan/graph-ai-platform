@@ -48,7 +48,7 @@ html, body, #root {
 .status-ok { color: #10b981; }
 .status-error { color: #ef4444; }
 
-.toolbar-views button, .toolbar button {
+.toolbar-views button, .toolbar-mode button, .toolbar button {
   background: #2a2a2a;
   color: #ccc;
   border: 1px solid #444;

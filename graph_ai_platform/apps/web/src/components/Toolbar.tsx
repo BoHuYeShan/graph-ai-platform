@@ -1,13 +1,18 @@
 interface ToolbarProps {
   view: 'code' | 'graph' | 'split'
+  viewMode: 'blueprint' | 'puzzle'
   onViewChange: (view: 'code' | 'graph' | 'split') => void
+  onViewModeChange: (mode: 'blueprint' | 'puzzle') => void
   onGenerate: () => void
   onRun: () => void
   running: boolean
   status: { nodeCount: number; edgeCount: number; error: string }
 }
 
-export function Toolbar({ view, onViewChange, onGenerate, onRun, running, status }: ToolbarProps) {
+export function Toolbar({
+  view, viewMode, onViewChange, onViewModeChange,
+  onGenerate, onRun, running, status
+}: ToolbarProps) {
   return (
     <div className="toolbar">
       <div className="toolbar-left">
@@ -21,6 +26,22 @@ export function Toolbar({ view, onViewChange, onGenerate, onRun, running, status
           </button>
           <button className={view === 'graph' ? 'active' : ''} onClick={() => onViewChange('graph')}>
             Graph
+          </button>
+        </div>
+        <div className="toolbar-mode">
+          <button
+            className={viewMode === 'blueprint' ? 'active' : ''}
+            onClick={() => onViewModeChange('blueprint')}
+            title="Blueprint (dagre)"
+          >
+            🔀 Blueprint
+          </button>
+          <button
+            className={viewMode === 'puzzle' ? 'active' : ''}
+            onClick={() => onViewModeChange('puzzle')}
+            title="Puzzle (Rete.js)"
+          >
+            🧩 Puzzle
           </button>
         </div>
         <span className="toolbar-status">

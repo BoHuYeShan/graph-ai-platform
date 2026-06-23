@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { GraphView } from './components/GraphView'
+import { PuzzleEditor } from './components/PuzzleEditor'
 import { CodeView } from './components/CodeView'
 import { Toolbar } from './components/Toolbar'
 import type { IRGraph } from './types/ir'
@@ -12,6 +13,7 @@ function App() {
   const [code, setCode] = useState(sampleCode)
   const [ir, setIr] = useState<IRGraph>(sampleIR)
   const [view, setView] = useState<'code' | 'graph' | 'split'>('split')
+  const [viewMode, setViewMode] = useState<'blueprint' | 'puzzle'>('blueprint')
   const [status, setStatus] = useState({ nodeCount: 0, edgeCount: 0, error: '' })
   const [output, setOutput] = useState('')
   const [running, setRunning] = useState(false)
@@ -113,7 +115,9 @@ function App() {
     <div className="app">
       <Toolbar
         view={view}
+        viewMode={viewMode}
         onViewChange={setView}
+        onViewModeChange={setViewMode}
         onGenerate={handleGenerate}
         onRun={handleRun}
         running={running}
@@ -127,7 +131,7 @@ function App() {
         )}
         {view !== 'code' && (
           <div className="panel panel-graph">
-            <GraphView ir={ir} />
+            {viewMode === 'blueprint' ? <GraphView ir={ir} /> : <PuzzleEditor ir={ir} />}
           </div>
         )}
       </div>
