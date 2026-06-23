@@ -58,7 +58,7 @@ class Node:
              "inputs": [asdict(p) for p in self.inputs],
              "outputs": [asdict(p) for p in self.outputs]}
         if self.value is not None: d["value"] = self.value
-        if self.children: d["children"] = self.children
+        d["children"] = self.children
         if self.codeBlock: d["codeBlock"] = self.codeBlock
         return d
 

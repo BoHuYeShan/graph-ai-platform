@@ -42,7 +42,7 @@ function layoutGraph(ir: IRGraph): { nodes: Node[]; edges: Edge[] } {
   // Separate containers vs leaf nodes
   const containerIds = new Set<string>()
   for (const n of rawNodes) {
-    if (CONTAINER_TYPES.has(n.type) && n.children.length > 0) {
+    if (CONTAINER_TYPES.has(n.type) && (n.children || []).length > 0) {
       containerIds.add(n.id)
     }
   }
@@ -55,17 +55,17 @@ function layoutGraph(ir: IRGraph): { nodes: Node[]; edges: Edge[] } {
     if (!n) return
     if (containerIds.has(nodeId)) {
       // This node IS a container — its children are inside it
-      for (const cid of n.children) {
+      for (const cid of (n.children || [])) {
         assignParent(cid, nodeId)
       }
     } else {
-      // This is a leaf — already assigned to parent
+      // leaf
     }
   }
   // Start from top-level nodes (those not in any children list)
   const allChildren = new Set<string>()
   for (const n of rawNodes) {
-    for (const cid of n.children) allChildren.add(cid)
+    for (const cid of (n.children || [])) allChildren.add(cid)
   }
   for (const n of rawNodes) {
     if (!allChildren.has(n.id)) assignParent(n.id, null)
@@ -139,7 +139,7 @@ function layoutGraph(ir: IRGraph): { nodes: Node[]; edges: Edge[] } {
 
     if (containerIds.has(n.id)) {
       // Container node: size based on children bounding box
-      const children = n.children.filter(c => nodeMap.has(c))
+      const children = (n.children || []).filter(c => nodeMap.has(c))
       let minX = absPos.x, minY = absPos.y, maxX = absPos.x + 160, maxY = absPos.y + 50
       for (const cid of children) {
         const cp = toAbsolute(cid)
