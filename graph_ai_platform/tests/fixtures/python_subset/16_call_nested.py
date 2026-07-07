@@ -1,0 +1,1 @@
+# 16 — nested calls print(len([1, 2, 3])) result = max(min(5, 10), 3)

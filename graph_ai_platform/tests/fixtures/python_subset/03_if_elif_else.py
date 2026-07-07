@@ -1,0 +1,1 @@
+# 03 — if / elif / else x = 0 if x > 0:     result = "positive" elif x == 0:     result = "zero" else:     result = "negative"

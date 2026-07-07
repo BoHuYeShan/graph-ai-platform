@@ -1,0 +1,1 @@
+# 19 — return with value def get_value():     return 42

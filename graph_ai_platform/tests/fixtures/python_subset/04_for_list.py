@@ -1,0 +1,1 @@
+# 04 — for loop over list literal total = 0 for item in [1, 2, 3, 4]:     total = total + item

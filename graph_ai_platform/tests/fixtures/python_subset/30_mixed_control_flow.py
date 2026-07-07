@@ -1,0 +1,1 @@
+# 30 — mixed control flow (factorial) def factorial(n):     if n < 0:         return -1     if n == 0:         return 1     result = 1     i = 1     while i <= n:         result = result * i         i = i + 1     return result

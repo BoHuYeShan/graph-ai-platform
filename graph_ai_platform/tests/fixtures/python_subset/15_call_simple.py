@@ -1,0 +1,1 @@
+# 15 — simple function call print(42) print("hello") len([1, 2, 3])

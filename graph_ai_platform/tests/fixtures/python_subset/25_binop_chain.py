@@ -1,0 +1,1 @@
+# 25 — binary operation chains x = 1 + 2 + 3 y = 10 * 2 - 5 z = x * y + 1

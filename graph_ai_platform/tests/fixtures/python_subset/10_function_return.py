@@ -1,0 +1,1 @@
+# 10 — function with return def square(x):     return x * x  result = square(5)

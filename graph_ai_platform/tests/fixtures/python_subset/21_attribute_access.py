@@ -1,0 +1,1 @@
+# 21 — attribute access import math x = math.pi y = math.sqrt(16)

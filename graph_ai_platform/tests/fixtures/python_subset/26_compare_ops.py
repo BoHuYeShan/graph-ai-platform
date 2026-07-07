@@ -1,0 +1,1 @@
+# 26 — compare operations a = 5 > 3 b = 1 == 1 c = 10 != 20 d = 2 <= 2

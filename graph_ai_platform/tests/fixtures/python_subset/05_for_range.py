@@ -1,0 +1,1 @@
+# 05 — for loop with range result = 0 for i in range(5):     result = result + i

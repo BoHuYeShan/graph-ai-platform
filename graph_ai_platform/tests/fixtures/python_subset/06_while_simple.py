@@ -1,0 +1,1 @@
+# 06 — while loop simple n = 5 count = 0 while n > 0:     count = count + 1     n = n - 1

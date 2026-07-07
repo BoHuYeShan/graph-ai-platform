@@ -1,0 +1,1 @@
+# 23 — string literals a = "hello" b = "world" c = ""

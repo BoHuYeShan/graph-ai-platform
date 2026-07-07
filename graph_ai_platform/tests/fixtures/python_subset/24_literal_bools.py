@@ -1,0 +1,1 @@
+# 24 — boolean and None literals a = True b = False c = None

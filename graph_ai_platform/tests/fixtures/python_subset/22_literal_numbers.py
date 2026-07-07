@@ -1,0 +1,1 @@
+# 22 — numeric literals a = 42 b = 3.14 c = -1 d = 0

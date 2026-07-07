@@ -1,0 +1,1 @@
+# 08 — simple function definition def greet(name):     return "Hello, " + name

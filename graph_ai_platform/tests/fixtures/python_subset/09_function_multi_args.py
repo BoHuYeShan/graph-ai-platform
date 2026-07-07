@@ -1,0 +1,1 @@
+# 09 — function with multiple arguments def add(a, b, c):     return a + b + c
